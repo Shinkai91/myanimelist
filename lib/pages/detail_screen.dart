@@ -26,11 +26,44 @@ class _AnimeDetailPageState extends State<AnimeDetailPage> {
     super.dispose();
   }
 
-  void _launchURL(String url) async {
-    if (await canLaunch(url)) {
-      await launch(url);
-    } else {
-      throw 'Could not launch $url';
+  Future<void> _launchURL(String url) async {
+    try {
+      final Uri uri = Uri.parse(url);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        debugPrint('Could not launch $url');
+        throw 'Could not launch $url';
+      }
+    } catch (e) {
+      debugPrint('Error launching URL: $e');
+    }
+  }
+
+  Widget _buildRatingStars(double rating) {
+    int fullStars = rating ~/ 2;
+    bool hasHalfStar = (rating % 2) >= 1;
+    return Row(
+      children: List.generate(5, (index) {
+        if (index < fullStars) {
+          return const Icon(Icons.star, color: Colors.amber);
+        } else if (index == fullStars && hasHalfStar) {
+          return const Icon(Icons.star_half, color: Colors.amber);
+        } else {
+          return const Icon(Icons.star_border, color: Colors.amber);
+        }
+      }),
+    );
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status) {
+      case 'Finished Airing':
+        return Colors.green;
+      case 'Currently Airing':
+        return Colors.yellow;
+      default:
+        return Colors.red;
     }
   }
 
@@ -139,18 +172,14 @@ class _AnimeDetailPageState extends State<AnimeDetailPage> {
                                   Column(
                                     crossAxisAlignment: CrossAxisAlignment.end,
                                     children: [
-                                      Row(
-                                        children: [
-                                          const Icon(Icons.star,
-                                              color: Colors.amber),
-                                          Text(
-                                            animeDetail.score.toString(),
-                                            style: const TextStyle(
-                                              fontSize: 20,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ],
+                                      _buildRatingStars(animeDetail.score),
+                                      Text(
+                                        animeDetail.score.toString(),
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.amber,
+                                        ),
                                       ),
                                       Text(
                                         'Rank #${animeDetail.rank}',
@@ -183,13 +212,16 @@ class _AnimeDetailPageState extends State<AnimeDetailPage> {
                                       vertical: 2,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: Colors.green.withOpacity(0.2),
+                                      color: _getStatusColor(animeDetail.status)
+                                          .withOpacity(0.2),
                                       borderRadius: BorderRadius.circular(4),
                                     ),
                                     child: Text(
                                       animeDetail.status,
-                                      style:
-                                          const TextStyle(color: Colors.green),
+                                      style: TextStyle(
+                                        color:
+                                            _getStatusColor(animeDetail.status),
+                                      ),
                                     ),
                                   ),
                                   const SizedBox(width: 8),
@@ -224,21 +256,42 @@ class _AnimeDetailPageState extends State<AnimeDetailPage> {
                                 ),
                               ),
                             ),
-                            // Video Section with YoutubePlayer
-                            Padding(
-                              padding: const EdgeInsets.all(16),
-                              child: GestureDetector(
-                                onTap: () =>
-                                    _launchURL(animeDetail.trailerUrl),
-                                child: Container(
-                                  height: 200,
-                                  color: Colors.black12,
-                                  child: Image.network(
-                                    animeDetail.maximumImageUrl,
-                                    fit: BoxFit.cover,
-                                  ),
+                            // Trailer Section
+                            const Padding(
+                              padding: EdgeInsets.all(16),
+                              child: Text(
+                                'Trailer:',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: animeDetail.trailerUrl != null &&
+                                      animeDetail.trailerUrl.isNotEmpty
+                                  ? GestureDetector(
+                                      onTap: () =>
+                                          _launchURL(animeDetail.trailerUrl),
+                                      child: Container(
+                                        height: 200,
+                                        color: Colors.black12,
+                                        child: Image.network(
+                                          animeDetail.maximumImageUrl,
+                                          fit: BoxFit.cover,
+                                        ),
+                                      ),
+                                    )
+                                  : const Center(
+                                      child: Text(
+                                        'No Trailer',
+                                        style: TextStyle(
+                                          fontSize: 18,
+                                          color: Colors.red,
+                                        ),
+                                      ),
+                                    ),
                             ),
                             // Opening Songs
                             const Padding(

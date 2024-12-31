@@ -3,6 +3,7 @@ class AnimeDetail {
   final String title;
   final String imageUrl;
   final String trailerUrl;
+  final String embedUrl;
   final String maximumImageUrl;
   final String type;
   final int episodes;
@@ -21,6 +22,7 @@ class AnimeDetail {
     required this.title,
     required this.imageUrl,
     required this.trailerUrl,
+    required this.embedUrl,
     required this.maximumImageUrl,
     required this.type,
     required this.episodes,
@@ -41,6 +43,7 @@ class AnimeDetail {
       title: json['title'],
       imageUrl: json['images']['jpg']['large_image_url'],
       trailerUrl: json['trailer']['url'] ?? '',
+      embedUrl: json['trailer']['embed_url'] ?? '',
       maximumImageUrl: json['trailer']['images']['maximum_image_url'] ?? '',
       type: json['type'],
       episodes: json['episodes'],
