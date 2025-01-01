@@ -39,26 +39,26 @@ class AnimeDetail {
 
   factory AnimeDetail.fromJson(Map<String, dynamic> json) {
     return AnimeDetail(
-      malId: json['mal_id'],
-      title: json['title'],
-      imageUrl: json['images']['jpg']['large_image_url'],
+      malId: json['mal_id'] ?? 0,
+      title: json['title'] ?? 'No title available',
+      imageUrl: json['images']['jpg']['large_image_url'] ?? '',
       trailerUrl: json['trailer']['url'] ?? '',
       embedUrl: json['trailer']['embed_url'] ?? '',
       maximumImageUrl: json['trailer']['images']['maximum_image_url'] ?? '',
-      type: json['type'],
-      episodes: json['episodes'],
-      status: json['status'],
-      duration: json['duration'],
+      type: json['type'] ?? 'Unknown',
+      episodes: json['episodes'] ?? 0,
+      status: json['status'] ?? 'Unknown',
+      duration: json['duration'] ?? 'Unknown duration',
       score: (json['score'] ?? 0).toDouble(),
-      synopsis: json['synopsis'] ?? '',
+      synopsis: json['synopsis'] ?? 'No synopsis available',
       year: json['year'] ?? 0,
-      genres: (json['genres'] as List)
+      genres: (json['genres'] as List? ?? [])
           .map((genre) => genre['name'] as String)
           .toList(),
-      openingSongs: (json['theme']['openings'] as List)
+      openingSongs: (json['theme']['openings'] as List? ?? [])
           .map((song) => song as String)
           .toList(),
-      endingSongs: (json['theme']['endings'] as List)
+      endingSongs: (json['theme']['endings'] as List? ?? [])
           .map((song) => song as String)
           .toList(),
       rank: json['rank'] ?? 0,

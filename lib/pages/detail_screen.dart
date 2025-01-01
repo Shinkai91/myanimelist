@@ -6,16 +6,16 @@ import 'package:myanimelist/bloc/detail_bloc.dart';
 import 'package:myanimelist/bloc/karakter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class AnimeDetailPage extends StatefulWidget {
-  final int animeId;
+class DetailPage extends StatefulWidget {
+  final int id;
 
-  const AnimeDetailPage({super.key, required this.animeId});
+  const DetailPage({super.key, required this.id});
 
   @override
-  State<AnimeDetailPage> createState() => _AnimeDetailPageState();
+  State<DetailPage> createState() => _AnimeDetailPageState();
 }
 
-class _AnimeDetailPageState extends State<AnimeDetailPage> {
+class _AnimeDetailPageState extends State<DetailPage> {
   @override
   void initState() {
     super.initState();
@@ -40,7 +40,10 @@ class _AnimeDetailPageState extends State<AnimeDetailPage> {
     }
   }
 
-  Widget _buildRatingStars(double rating) {
+  Widget _buildRatingStars(double? rating) {
+    if (rating == null) {
+      return const Text('No rating available');
+    }
     int fullStars = rating ~/ 2;
     bool hasHalfStar = (rating % 2) >= 1;
     return Row(
@@ -56,7 +59,7 @@ class _AnimeDetailPageState extends State<AnimeDetailPage> {
     );
   }
 
-  Color _getStatusColor(String status) {
+  Color _getStatusColor(String? status) {
     switch (status) {
       case 'Finished Airing':
         return Colors.green;
@@ -99,11 +102,11 @@ class _AnimeDetailPageState extends State<AnimeDetailPage> {
           providers: [
             BlocProvider(
               create: (context) =>
-                  AnimeDetailBloc()..add(FetchAnimeDetail(widget.animeId)),
+                  AnimeDetailBloc()..add(FetchAnimeDetail(widget.id)),
             ),
             BlocProvider(
               create: (context) =>
-                  KarakterBloc()..add(FetchKarakter(widget.animeId)),
+                  KarakterBloc()..add(FetchKarakter(widget.id)),
             ),
           ],
           child: Column(
@@ -130,6 +133,7 @@ class _AnimeDetailPageState extends State<AnimeDetailPage> {
                       );
                     } else if (state is AnimeDetailLoaded) {
                       final animeDetail = state.animeDetail;
+                      debugPrint('Anime Detail: $animeDetail');
                       return SingleChildScrollView(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -182,7 +186,9 @@ class _AnimeDetailPageState extends State<AnimeDetailPage> {
                                         ),
                                       ),
                                       Text(
-                                        'Rank #${animeDetail.rank}',
+                                        animeDetail.rank != 0
+                                            ? 'Rank #${animeDetail.rank}'
+                                            : 'No rank available',
                                         style: TextStyle(
                                           color: Colors.blue.shade300,
                                         ),
@@ -200,7 +206,7 @@ class _AnimeDetailPageState extends State<AnimeDetailPage> {
                                 children: [
                                   Flexible(
                                     child: Text(
-                                      '${animeDetail.type}, ${animeDetail.year}',
+                                      '${animeDetail.type}, ${animeDetail.year != 0 ? animeDetail.year : 'Unknown'}',
                                       softWrap: true,
                                       overflow: TextOverflow.ellipsis,
                                     ),
@@ -269,8 +275,7 @@ class _AnimeDetailPageState extends State<AnimeDetailPage> {
                             ),
                             Padding(
                               padding: const EdgeInsets.all(16),
-                              child: animeDetail.trailerUrl != null &&
-                                      animeDetail.trailerUrl.isNotEmpty
+                              child: animeDetail.trailerUrl.isNotEmpty
                                   ? GestureDetector(
                                       onTap: () =>
                                           _launchURL(animeDetail.trailerUrl),

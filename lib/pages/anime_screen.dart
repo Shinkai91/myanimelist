@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shimmer/shimmer.dart';
-import 'package:curved_labeled_navigation_bar/curved_navigation_bar.dart';
-import 'package:curved_labeled_navigation_bar/curved_navigation_bar_item.dart';
 import 'dart:async';
 
 import 'package:myanimelist/bloc/anime_bloc.dart';
 import 'package:myanimelist/model/anime.dart';
 import 'package:myanimelist/pages/detail_screen.dart';
+import 'package:myanimelist/pages/manga_screen.dart';
+import 'package:myanimelist/pages/seasonal_screen.dart';
+import 'package:myanimelist/pages/search_screen.dart';
+import 'package:myanimelist/pages/favorite_screen.dart';
+import 'package:myanimelist/pages/profile_screen.dart';
+import 'package:myanimelist/widgets/appbar.dart';
+import 'package:myanimelist/widgets/navigation.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -17,9 +22,9 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final GlobalKey<CurvedNavigationBarState> _bottomNavigationKey = GlobalKey();
   late Timer _timer;
   late DateTime _currentTime;
+  int _pageIndex = 0;
 
   List<Anime> topAnimes = [];
   List<Anime> airingAnimes = [];
@@ -51,85 +56,47 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: const Color.fromARGB(255, 40, 53, 147),
-        leading: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Image.network(
-            'https://store-images.s-microsoft.com/image/apps.14964.9007199266506523.65c06eb1-33a4-438a-855a-7726d60ec911.21ac20c8-cdd3-447c-94d5-d8cf1eb08650?h=210',
-            fit: BoxFit.contain,
-          ),
-        ),
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Spacer(),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  '${_currentTime.day}/${_currentTime.month}/${_currentTime.year}',
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodySmall
-                      ?.copyWith(color: Colors.white),
-                ),
-                Text(
-                  '${_currentTime.hour.toString().padLeft(2, '0')}:${_currentTime.minute.toString().padLeft(2, '0')}:${_currentTime.second.toString().padLeft(2, '0')}',
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodyMedium
-                      ?.copyWith(color: Colors.white),
-                ),
-              ],
-            ),
-          ],
-        ),
-        centerTitle: true,
-      ),
+      appBar: CustomAppBar(currentTime: _currentTime),
       body: _buildPageContent(),
-      bottomNavigationBar: CurvedNavigationBar(
-        key: _bottomNavigationKey,
-        index: 0,
-        items: const [
-          CurvedNavigationBarItem(
-            child: Icon(Icons.home_outlined),
-            label: 'Home',
-          ),
-          CurvedNavigationBarItem(
-            child: Icon(Icons.search),
-            label: 'Search',
-          ),
-          CurvedNavigationBarItem(
-            child: Icon(Icons.favorite),
-            label: 'Favorites',
-          ),
-          CurvedNavigationBarItem(
-            child: Icon(Icons.settings),
-            label: 'Settings',
-          ),
-        ],
-        color: Colors.white,
-        buttonBackgroundColor: Colors.white,
-        backgroundColor: const Color.fromARGB(255, 40, 53, 147),
-        animationCurve: Curves.easeInOut,
-        animationDuration: const Duration(milliseconds: 600),
+      bottomNavigationBar: CustomBottomNavigationBar(
+        currentIndex: _pageIndex,
         onTap: (index) {
           setState(() {
+            _pageIndex = index;
           });
         },
-        letIndexChange: (index) => true,
       ),
     );
   }
 
   Widget _buildPageContent() {
+    switch (_pageIndex) {
+      case 0:
+        return _buildAnimePage();
+      case 1:
+        return const MangaScreen();
+      case 2:
+        return const SeasonalScreen();
+      case 3:
+        return const SearchScreen();
+      case 4:
+        return const FavoriteScreen();
+      case 5:
+        return const ProfileScreen();
+      default:
+        return _buildAnimePage();
+    }
+  }
+
+  Widget _buildAnimePage() {
     return BlocListener<AnimeBloc, AnimeState>(
       listener: (context, state) {
         if (state is AnimeLoaded) {
-          if (state.animes.isNotEmpty && state.animes.first.filter == 'airing') {
+          if (state.animes.isNotEmpty &&
+              state.animes.first.filter == 'airing') {
             airingAnimes = state.animes;
-          } else if (state.animes.isNotEmpty && state.animes.first.filter == 'upcoming') {
+          } else if (state.animes.isNotEmpty &&
+              state.animes.first.filter == 'upcoming') {
             upcomingAnimes = state.animes;
           } else {
             topAnimes = state.animes;
@@ -188,7 +155,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => AnimeDetailPage(animeId: anime.malId),
+                                builder: (context) =>
+                                    DetailPage(id: anime.malId),
                               ),
                             );
                           },
@@ -251,7 +219,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => AnimeDetailPage(animeId: anime.malId),
+                        builder: (context) => DetailPage(id: anime.malId),
                       ),
                     );
                   },

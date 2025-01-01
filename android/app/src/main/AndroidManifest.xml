@@ -2,7 +2,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application
-        android:label="My Anime List"
+        android:label="MyAnimeList"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 
-import 'package:myanimelist/pages/home_screen.dart';
+import 'package:myanimelist/pages/anime_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
