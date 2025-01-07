@@ -230,13 +230,14 @@ class _SeasonalViewState extends State<SeasonalView> {
                                     child: Chip(
                                       label: Text(
                                           SeasonalScreen.capitalize(season)),
-                                      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+                                      backgroundColor: const Color.fromARGB(
+                                          255, 255, 255, 255),
                                       labelStyle: TextStyle(
                                         color: currentYear == archive.year &&
                                                 currentSeason == season
                                             ? Colors.blue
                                             : Colors.black,
-                                      ),  
+                                      ),
                                     ),
                                   );
                                 }).toList(),
