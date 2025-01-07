@@ -194,9 +194,14 @@ class _MangaScreenState extends State<MangaScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: Theme.of(context).textTheme.titleLarge,
+          Shimmer.fromColors(
+            baseColor: Colors.grey[300]!,
+            highlightColor: Colors.grey[100]!,
+            child: Container(
+              width: 150,
+              height: 24,
+              color: Colors.white,
+            ),
           ),
           const SizedBox(height: 8.0),
           SizedBox(

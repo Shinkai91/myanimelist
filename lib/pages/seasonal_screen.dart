@@ -99,7 +99,7 @@ class _SeasonalViewState extends State<SeasonalView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Seasonal Anime')),
+      backgroundColor: Colors.white,
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -144,12 +144,16 @@ class _SeasonalViewState extends State<SeasonalView> {
                 children: [
                   _buildDropdown(
                       ['TV', 'ONA', 'OVA', 'Movie', 'Special', 'TV Special']),
-                  Text(
-                    '${currentSeason[0].toUpperCase()}${currentSeason.substring(1)} $currentYear',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  BlocBuilder<SeasonalAnimeBloc, SeasonalAnimeState>(
+                    builder: (context, state) {
+                      return Text(
+                        '$currentSeason $currentYear',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      );
+                    },
                   ),
                   _buildIconDropdown(),
                 ],

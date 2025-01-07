@@ -116,15 +116,227 @@ class _AnimeDetailPageState extends State<DetailPage> {
                 child: BlocBuilder<AnimeDetailBloc, AnimeDetailState>(
                   builder: (context, state) {
                     if (state is AnimeDetailLoading) {
-                      return Center(
-                        child: Shimmer.fromColors(
-                          baseColor: Colors.grey.shade300,
-                          highlightColor: Colors.white,
-                          child: Container(
-                            height: 600,
-                            width: 420,
-                            color: Colors.grey.shade300,
-                          ),
+                      return SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Shimmer for Anime Cover Image
+                            Shimmer.fromColors(
+                              baseColor: Colors.grey.shade300,
+                              highlightColor: Colors.white,
+                              child: Container(
+                                height: 600,
+                                width: double.infinity,
+                                color: Colors.grey.shade300,
+                              ),
+                            ),
+                            // Shimmer for Stats Section
+                            Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Flexible(
+                                    child: Shimmer.fromColors(
+                                      baseColor: Colors.grey.shade300,
+                                      highlightColor: Colors.white,
+                                      child: Container(
+                                        height: 24,
+                                        width: double.infinity,
+                                        color: Colors.grey.shade300,
+                                      ),
+                                    ),
+                                  ),
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      Shimmer.fromColors(
+                                        baseColor: Colors.grey.shade300,
+                                        highlightColor: Colors.white,
+                                        child: Container(
+                                          height: 16,
+                                          width: 100,
+                                          color: Colors.grey.shade300,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Shimmer.fromColors(
+                                        baseColor: Colors.grey.shade300,
+                                        highlightColor: Colors.white,
+                                        child: Container(
+                                          height: 16,
+                                          width: 50,
+                                          color: Colors.grey.shade300,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                            // Shimmer for Info Section
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 16),
+                              child: Row(
+                                children: [
+                                  Flexible(
+                                    child: Shimmer.fromColors(
+                                      baseColor: Colors.grey.shade300,
+                                      highlightColor: Colors.white,
+                                      child: Container(
+                                        height: 16,
+                                        width: double.infinity,
+                                        color: Colors.grey.shade300,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Shimmer.fromColors(
+                                    baseColor: Colors.grey.shade300,
+                                    highlightColor: Colors.white,
+                                    child: Container(
+                                      height: 16,
+                                      width: 80,
+                                      color: Colors.grey.shade300,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Flexible(
+                                    child: Shimmer.fromColors(
+                                      baseColor: Colors.grey.shade300,
+                                      highlightColor: Colors.white,
+                                      child: Container(
+                                        height: 16,
+                                        width: double.infinity,
+                                        color: Colors.grey.shade300,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            // Shimmer for Genres
+                            Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Wrap(
+                                spacing: 8,
+                                children: List.generate(3, (index) {
+                                  return Shimmer.fromColors(
+                                    baseColor: Colors.grey.shade300,
+                                    highlightColor: Colors.white,
+                                    child: Container(
+                                      height: 24,
+                                      width: 60,
+                                      color: Colors.grey.shade300,
+                                    ),
+                                  );
+                                }),
+                              ),
+                            ),
+                            // Shimmer for Synopsis
+                            Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: List.generate(3, (index) {
+                                  return Padding(
+                                    padding:
+                                        const EdgeInsets.symmetric(vertical: 4),
+                                    child: Shimmer.fromColors(
+                                      baseColor: Colors.grey.shade300,
+                                      highlightColor: Colors.white,
+                                      child: Container(
+                                        height: 16,
+                                        width: double.infinity,
+                                        color: Colors.grey.shade300,
+                                      ),
+                                    ),
+                                  );
+                                }),
+                              ),
+                            ),
+                            // Shimmer for Trailer Section
+                            Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Shimmer.fromColors(
+                                baseColor: Colors.grey.shade300,
+                                highlightColor: Colors.white,
+                                child: Container(
+                                  height: 200,
+                                  width: double.infinity,
+                                  color: Colors.grey.shade300,
+                                ),
+                              ),
+                            ),
+                            // Shimmer for Opening Songs
+                            Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: List.generate(2, (index) {
+                                  return Padding(
+                                    padding:
+                                        const EdgeInsets.symmetric(vertical: 4),
+                                    child: Shimmer.fromColors(
+                                      baseColor: Colors.grey.shade300,
+                                      highlightColor: Colors.white,
+                                      child: Container(
+                                        height: 16,
+                                        width: double.infinity,
+                                        color: Colors.grey.shade300,
+                                      ),
+                                    ),
+                                  );
+                                }),
+                              ),
+                            ),
+                            // Shimmer for Ending Songs
+                            Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: List.generate(2, (index) {
+                                  return Padding(
+                                    padding:
+                                        const EdgeInsets.symmetric(vertical: 4),
+                                    child: Shimmer.fromColors(
+                                      baseColor: Colors.grey.shade300,
+                                      highlightColor: Colors.white,
+                                      child: Container(
+                                        height: 16,
+                                        width: double.infinity,
+                                        color: Colors.grey.shade300,
+                                      ),
+                                    ),
+                                  );
+                                }),
+                              ),
+                            ),
+                            // Shimmer for Characters and Voice Actors
+                            Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: List.generate(3, (index) {
+                                  return Padding(
+                                    padding:
+                                        const EdgeInsets.symmetric(vertical: 8),
+                                    child: Shimmer.fromColors(
+                                      baseColor: Colors.grey.shade300,
+                                      highlightColor: Colors.white,
+                                      child: Container(
+                                        height: 50,
+                                        width: double.infinity,
+                                        color: Colors.grey.shade300,
+                                      ),
+                                    ),
+                                  );
+                                }),
+                              ),
+                            ),
+                          ],
                         ),
                       );
                     } else if (state is AnimeDetailError) {

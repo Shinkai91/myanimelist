@@ -4,8 +4,10 @@ import 'package:shimmer/shimmer.dart';
 import 'dart:async';
 
 import 'package:myanimelist/bloc/anime_bloc.dart';
+import 'package:myanimelist/bloc/anime_rekomendasi_bloc.dart';
 import 'package:myanimelist/model/anime.dart';
-import 'package:myanimelist/pages/detail_screen.dart';
+import 'package:myanimelist/model/rekomendasi.dart';
+import 'package:myanimelist/pages/anime_detail_screen.dart';
 import 'package:myanimelist/pages/manga_screen.dart';
 import 'package:myanimelist/pages/seasonal_screen.dart';
 import 'package:myanimelist/pages/search_screen.dart';
@@ -28,7 +30,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   List<Anime> topAnimes = [];
   List<Anime> airingAnimes = [];
-  List<Anime> upcomingAnimes = [];
+  List<AnimeRecommendation> animeRecommendations = [];
 
   @override
   void initState() {
@@ -41,9 +43,13 @@ class _HomeScreenState extends State<HomeScreen> {
     });
 
     // Fetch anime data
+    _fetchData();
+  }
+
+  Future<void> _fetchData() async {
     context.read<AnimeBloc>().add(const FetchAnime());
     context.read<AnimeBloc>().add(const FetchAnime(filter: 'airing'));
-    context.read<AnimeBloc>().add(const FetchAnime(filter: 'upcoming'));
+    context.read<AnimeRecommendationBloc>().add(FetchAnimeRecommendations());
   }
 
   @override
@@ -57,7 +63,12 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: CustomAppBar(currentTime: _currentTime),
-      body: _buildPageContent(),
+      body: RefreshIndicator(
+        onRefresh: _fetchData,
+        color: Colors.white,
+        backgroundColor: Colors.blue,
+        child: _buildPageContent(),
+      ),
       bottomNavigationBar: CustomBottomNavigationBar(
         currentIndex: _pageIndex,
         onTap: (index) {
@@ -89,20 +100,28 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildAnimePage() {
-    return BlocListener<AnimeBloc, AnimeState>(
-      listener: (context, state) {
-        if (state is AnimeLoaded) {
-          if (state.animes.isNotEmpty &&
-              state.animes.first.filter == 'airing') {
-            airingAnimes = state.animes;
-          } else if (state.animes.isNotEmpty &&
-              state.animes.first.filter == 'upcoming') {
-            upcomingAnimes = state.animes;
-          } else {
-            topAnimes = state.animes;
-          }
-        }
-      },
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<AnimeBloc, AnimeState>(
+          listener: (context, state) {
+            if (state is AnimeLoaded) {
+              if (state.animes.isNotEmpty &&
+                  state.animes.first.filter == 'airing') {
+                airingAnimes = state.animes;
+              } else {
+                topAnimes = state.animes;
+              }
+            }
+          },
+        ),
+        BlocListener<AnimeRecommendationBloc, AnimeRecommendationState>(
+          listener: (context, state) {
+            if (state is AnimeRecommendationLoaded) {
+              animeRecommendations = state.recommendations;
+            }
+          },
+        ),
+      ],
       child: BlocBuilder<AnimeBloc, AnimeState>(
         builder: (context, state) {
           if (state is AnimeLoading) {
@@ -111,28 +130,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Shimmer effect for loading state
-                  Container(
-                    height: 200,
-                    margin: const EdgeInsets.symmetric(vertical: 16.0),
-                    child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: 5, // Number of shimmer items
-                      itemBuilder: (context, index) {
-                        return Shimmer.fromColors(
-                          baseColor: Colors.grey[300]!,
-                          highlightColor: Colors.grey[100]!,
-                          child: Container(
-                            width: MediaQuery.of(context).size.width * 0.8,
-                            margin: const EdgeInsets.symmetric(horizontal: 8.0),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(8.0),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
+                  _buildShimmerSection('Rekomendasi', isCarousel: true),
+                  _buildShimmerSection('Top Anime'),
+                  _buildShimmerSection('Top Airing'),
                 ],
               ),
             );
@@ -141,48 +141,73 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Rekomendasi Text
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 8.0, horizontal: 16.0),
+                    child: Text(
+                      'Rekomendasi',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                  ),
                   // Carousel Image Section
-                  Container(
-                    height: 200,
-                    margin: const EdgeInsets.symmetric(vertical: 16.0),
-                    child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: upcomingAnimes.length,
-                      itemBuilder: (context, index) {
-                        final anime = upcomingAnimes[index];
-                        return GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    DetailPage(id: anime.malId),
-                              ),
-                            );
-                          },
-                          child: Container(
-                            width: MediaQuery.of(context).size.width * 0.8,
-                            margin: const EdgeInsets.symmetric(horizontal: 8.0),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(8.0),
-                            ),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(8.0),
-                              child: Image.network(
-                                anime.trailerImageUrl ?? anime.imageUrl,
-                                fit: BoxFit.cover,
-                              ),
-                            ),
+                  BlocBuilder<AnimeRecommendationBloc,
+                      AnimeRecommendationState>(
+                    builder: (context, state) {
+                      if (state is AnimeRecommendationLoading) {
+                        return _buildLoading(isCarousel: true);
+                      } else if (state is AnimeRecommendationLoaded) {
+                        return Container(
+                          height: 200,
+                          margin: const EdgeInsets.symmetric(vertical: 16.0),
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: state.recommendations.length,
+                            itemBuilder: (context, index) {
+                              final recommendation =
+                                  state.recommendations[index];
+                              return GestureDetector(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          DetailPage(id: recommendation.malId),
+                                    ),
+                                  );
+                                },
+                                child: Container(
+                                  width:
+                                      MediaQuery.of(context).size.width * 0.8,
+                                  margin: const EdgeInsets.symmetric(
+                                      horizontal: 8.0),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(8.0),
+                                  ),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(8.0),
+                                    child: Image.network(
+                                      recommendation.imageUrl,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
                           ),
                         );
-                      },
-                    ),
+                      } else if (state is AnimeRecommendationError) {
+                        return Center(child: Text(state.message));
+                      } else {
+                        return const Center(
+                            child: Text('Something went wrong!'));
+                      }
+                    },
                   ),
 
                   // Section Builder
                   _buildSection('Top Anime', topAnimes),
-                  _buildSection('Top 10 Airing', airingAnimes),
-                  _buildSection('Top 10 Upcoming', upcomingAnimes),
+                  _buildSection('Top Airing', airingAnimes),
                 ],
               ),
             );
@@ -192,6 +217,75 @@ class _HomeScreenState extends State<HomeScreen> {
             return const Center(child: Text('Something went wrong!'));
           }
         },
+      ),
+    );
+  }
+
+  Widget _buildLoading({bool isCarousel = false}) {
+    return Container(
+      height: 200,
+      margin: const EdgeInsets.symmetric(vertical: 16.0),
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: 5, // Number of shimmer items
+        itemBuilder: (context, index) {
+          return Shimmer.fromColors(
+            baseColor: Colors.grey[300]!,
+            highlightColor: Colors.grey[100]!,
+            child: Container(
+              width: isCarousel ? MediaQuery.of(context).size.width * 0.8 : 120,
+              margin: const EdgeInsets.symmetric(horizontal: 8.0),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8.0),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildShimmerSection(String title, {bool isCarousel = false}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Shimmer.fromColors(
+            baseColor: Colors.grey[300]!,
+            highlightColor: Colors.grey[100]!,
+            child: Container(
+              width: 150,
+              height: 24,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 8.0),
+          SizedBox(
+            height: 200,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: 5, // Number of shimmer items
+              itemBuilder: (context, index) {
+                return Shimmer.fromColors(
+                  baseColor: Colors.grey[300]!,
+                  highlightColor: Colors.grey[100]!,
+                  child: Container(
+                    width: isCarousel
+                        ? MediaQuery.of(context).size.width * 0.8
+                        : 120,
+                    margin: const EdgeInsets.symmetric(horizontal: 8.0),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
