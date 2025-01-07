@@ -15,5 +15,3 @@ class FetchManga extends MangaEvent {
   @override
   List<Object> get props => [filter];
 }
-
-class FetchMangaRecommendations extends MangaEvent {}

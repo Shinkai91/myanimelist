@@ -9,7 +9,14 @@ abstract class MangaState extends Equatable {
 
 class MangaInitial extends MangaState {}
 
-class MangaLoading extends MangaState {}
+class MangaLoading extends MangaState {
+  final String filter;
+
+  const MangaLoading({required this.filter});
+
+  @override
+  List<Object> get props => [filter];
+}
 
 class MangaLoaded extends MangaState {
   final List<Manga> mangas;
@@ -21,20 +28,12 @@ class MangaLoaded extends MangaState {
   List<Object> get props => [mangas, filter];
 }
 
-class MangaRecommendationsLoaded extends MangaState {
-  final List<MangaRecommendation> recommendations;
-
-  const MangaRecommendationsLoaded({required this.recommendations});
-
-  @override
-  List<Object> get props => [recommendations];
-}
-
 class MangaError extends MangaState {
   final String message;
+  final String filter;
 
-  const MangaError({required this.message});
+  const MangaError({required this.message, required this.filter});
 
   @override
-  List<Object> get props => [message];
+  List<Object> get props => [message, filter];
 }

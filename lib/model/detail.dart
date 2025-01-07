@@ -65,3 +65,49 @@ class AnimeDetail {
     );
   }
 }
+
+class MangaDetail {
+  final int malId;
+  final String title;
+  final String imageUrl;
+  final String type;
+  final int chapters;
+  final int volumes;
+  final String status;
+  final double score;
+  final String synopsis;
+  final List<String> genres;
+  final int rank;
+
+  MangaDetail({
+    required this.malId,
+    required this.title,
+    required this.imageUrl,
+    required this.type,
+    required this.chapters,
+    required this.volumes,
+    required this.status,
+    required this.score,
+    required this.synopsis,
+    required this.genres,
+    required this.rank,
+  });
+
+  factory MangaDetail.fromJson(Map<String, dynamic> json) {
+    return MangaDetail(
+      malId: json['mal_id'] ?? 0,
+      title: json['title'] ?? 'No title available',
+      imageUrl: json['images']['jpg']['large_image_url'] ?? '',
+      type: json['type'] ?? 'Unknown',
+      chapters: json['chapters'] ?? 0,
+      volumes: json['volumes'] ?? 0,
+      status: json['status'] ?? 'Unknown',
+      score: (json['score'] ?? 0).toDouble(),
+      synopsis: json['synopsis'] ?? 'No synopsis available',
+      genres: (json['genres'] as List? ?? [])
+          .map((genre) => genre['name'] as String)
+          .toList(),
+      rank: json['rank'] ?? 0,
+    );
+  }
+}

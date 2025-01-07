@@ -65,8 +65,8 @@ class _SplashScreenState extends State<SplashScreen>
           opacity: _fadeAnimation,
           child: ScaleTransition(
             scale: _scaleAnimation,
-            child: Image.network(
-              'https://scontent.fsrg6-1.fna.fbcdn.net/v/t39.30808-6/299821468_493457372785284_6623888224725649048_n.jpg?_nc_cat=107&ccb=1-7&_nc_sid=6ee11a&_nc_ohc=e3rTZaQ_5g8Q7kNvgG80Qyr&_nc_oc=AdifxhBCIEuIeZNOO5QHPNmlAfMfZyDj8vrdGzZzETmP-uWu5VrxSC5zo6imk6NuSn4ge2CsoQuQiHCnt24HRt3x&_nc_zt=23&_nc_ht=scontent.fsrg6-1.fna&_nc_gid=A-n5GNoJuWCxwCKuwtxAcQ7&oh=00_AYAoR4Me5ytvp_KyLKwRU6lPJCtrgib5VTYNmgamRUVGlw&oe=67781128',
+            child: Image.asset(
+              'lib/assets/logo.jpg',
               width: 200,
               height: 200,
             ),
