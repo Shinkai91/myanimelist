@@ -2,9 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:myanimelist/bloc/seasonal_bloc.dart';
 import 'package:myanimelist/model/seasonal.dart';
-import 'package:myanimelist/pages/last_season_screen.dart';
-import 'package:myanimelist/pages/next_season_screen.dart';
-import 'package:myanimelist/pages/this_season_screen.dart';
 import 'package:shimmer/shimmer.dart';
 
 class SeasonalScreen extends StatelessWidget {
@@ -36,6 +33,22 @@ class SeasonalScreen extends StatelessWidget {
       return 'fall';
     }
   }
+
+  static String getNextSeason(String currentSeason) {
+    const seasons = ['winter', 'spring', 'summer', 'fall'];
+    int currentIndex = seasons.indexOf(currentSeason);
+    int nextIndex = (currentIndex + 1) % seasons.length;
+    return seasons[nextIndex];
+  }
+
+  static String getLastSeason(String currentSeason) {
+    const seasons = ['winter', 'spring', 'summer', 'fall'];
+    int currentIndex = seasons.indexOf(currentSeason);
+    int lastIndex = (currentIndex - 1 + seasons.length) % seasons.length;
+    return seasons[lastIndex];
+  }
+
+  static String capitalize(String s) => s[0].toUpperCase() + s.substring(1);
 }
 
 class SeasonalView extends StatefulWidget {
@@ -65,34 +78,33 @@ class _SeasonalViewState extends State<SeasonalView> {
         .add(FetchSeasonalAnimeBySeason(currentYear, currentSeason));
   }
 
-  void _navigateToSeason(BuildContext context, String season) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) {
-          switch (season) {
-            case 'Last':
-              return LastSeasonScreen(
-                year: currentYear,
-                season: currentSeason,
-              );
-            case 'Next':
-              return NextSeasonScreen(
-                year: currentYear,
-                season: currentSeason,
-              );
-            case 'Archive':
-              // Implement ArchiveScreen if needed
-              return Container();
-            default:
-              return ThisSeasonScreen(
-                year: SeasonalScreen._getCurrentYear(),
-                season: SeasonalScreen._getCurrentSeason(),
-              );
-          }
-        },
-      ),
-    );
+  void _navigateToSeason(String season) {
+    setState(() {
+      final thisSeason = SeasonalScreen._getCurrentSeason();
+      final thisYear = SeasonalScreen._getCurrentYear();
+
+      if (season == 'Last') {
+        currentSeason = SeasonalScreen.getLastSeason(thisSeason);
+        currentYear = thisYear;
+        if (currentSeason == 'fall') {
+          currentYear--;
+        }
+      } else if (season == 'Next') {
+        currentSeason = SeasonalScreen.getNextSeason(thisSeason);
+        currentYear = thisYear;
+        if (currentSeason == 'winter') {
+          currentYear++;
+        }
+      } else {
+        currentSeason = thisSeason;
+        currentYear = thisYear;
+      }
+      selectedNav = season;
+      // Reset Bloc state and fetch new data
+      context
+          .read<SeasonalAnimeBloc>()
+          .add(FetchSeasonalAnimeBySeason(currentYear, currentSeason));
+    });
   }
 
   @override
@@ -111,23 +123,32 @@ class _SeasonalViewState extends State<SeasonalView> {
                 children: [
                   GestureDetector(
                     onTap: () {
-                      _navigateToSeason(context, 'Last');
+                      _navigateToSeason('Last');
                     },
                     child: _buildNavText(context, 'Last'),
                   ),
                   GestureDetector(
                     onTap: () {
-                      _navigateToSeason(context, 'This Season');
+                      _navigateToSeason('This Season');
                     },
                     child: _buildNavText(context, 'This Season'),
                   ),
                   GestureDetector(
                     onTap: () {
-                      _navigateToSeason(context, 'Next');
+                      _navigateToSeason('Next');
                     },
                     child: _buildNavText(context, 'Next'),
                   ),
-                  _buildNavText(context, 'Archive'),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const ArchiveScreen()),
+                      );
+                    },
+                    child: _buildNavText(context, 'Archive'),
+                  ),
                 ],
               ),
               const SizedBox(height: 16.0),
@@ -139,7 +160,7 @@ class _SeasonalViewState extends State<SeasonalView> {
                   _buildDropdown(
                       ['TV', 'ONA', 'OVA', 'Movie', 'Special', 'TV Special']),
                   Text(
-                    '$currentSeason $currentYear',
+                    '${SeasonalScreen.capitalize(currentSeason)} $currentYear',
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -174,21 +195,7 @@ class _SeasonalViewState extends State<SeasonalView> {
                   } else if (state is SeasonalAnimeError) {
                     return Center(child: Text(state.message));
                   } else {
-                    return GridView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        crossAxisSpacing: 16.0,
-                        mainAxisSpacing: 16.0,
-                        childAspectRatio: 0.7,
-                      ),
-                      itemCount: 4, // Number of dummy items
-                      itemBuilder: (context, index) {
-                        return _buildAnimeCard(null);
-                      },
-                    );
+                    return _buildShimmerGrid();
                   }
                 },
               ),
@@ -202,9 +209,7 @@ class _SeasonalViewState extends State<SeasonalView> {
   Widget _buildNavText(BuildContext context, String text) {
     return GestureDetector(
       onTap: () {
-        setState(() {
-          selectedNav = text;
-        });
+        _navigateToSeason(text);
       },
       child: Text(
         text,
