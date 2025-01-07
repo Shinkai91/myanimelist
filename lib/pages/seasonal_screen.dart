@@ -119,6 +119,7 @@ class _SeasonalViewState extends State<SeasonalView> {
 
   void _showArchive() {
     setState(() {
+      selectedNav = 'Archive'; // Pastikan "Archive" menjadi nilai aktif
       showArchive = true;
     });
   }
@@ -232,12 +233,6 @@ class _SeasonalViewState extends State<SeasonalView> {
                                           SeasonalScreen.capitalize(season)),
                                       backgroundColor: const Color.fromARGB(
                                           255, 255, 255, 255),
-                                      labelStyle: TextStyle(
-                                        color: currentYear == archive.year &&
-                                                currentSeason == season
-                                            ? Colors.blue
-                                            : Colors.black,
-                                      ),
                                     ),
                                   );
                                 }).toList(),
@@ -293,7 +288,7 @@ class _SeasonalViewState extends State<SeasonalView> {
     return GestureDetector(
       onTap: () {
         if (text == 'Archive') {
-          _showArchive();
+          _showArchive(); // Panggil fungsi yang telah diperbarui
         } else {
           _navigateToSeason(text);
         }
@@ -303,7 +298,10 @@ class _SeasonalViewState extends State<SeasonalView> {
         style: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.bold,
-          color: selectedNav == text ? Colors.blue : Colors.black,
+          color: (selectedNav == text && !showArchive) ||
+                  (text == 'Archive' && showArchive)
+              ? Colors.blue
+              : Colors.black,
         ),
       ),
     );

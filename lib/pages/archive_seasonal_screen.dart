@@ -165,6 +165,30 @@ class _ArchiveSeasonalViewState extends State<ArchiveSeasonalView> {
               ),
               const SizedBox(height: 16.0),
 
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back),
+                        onPressed: () {
+                          Navigator.pop(context); // Kembali ke Archive Screen
+                        },
+                      ),
+                      Text(
+                        '${capitalize(currentSeason)} $currentYear',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16.0),
+
               // Dropdowns and Season Text
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
