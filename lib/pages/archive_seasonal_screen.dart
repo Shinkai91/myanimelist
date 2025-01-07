@@ -1,28 +1,84 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:myanimelist/bloc/seasonal_bloc.dart';
-import 'package:myanimelist/bloc/archive_bloc.dart';
 import 'package:myanimelist/model/seasonal.dart';
 import 'package:shimmer/shimmer.dart';
 
-class SeasonalScreen extends StatelessWidget {
-  const SeasonalScreen({super.key});
+class ArchiveSeasonalScreen extends StatelessWidget {
+  final int year;
+  final String season;
+
+  const ArchiveSeasonalScreen(
+      {super.key, required this.year, required this.season});
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider(
-          create: (context) => SeasonalAnimeBloc()
-            ..add(FetchSeasonalAnimeBySeason(
-                _getCurrentYear(), _getCurrentSeason())),
-        ),
-        BlocProvider(
-          create: (context) => ArchiveBloc()..add(FetchArchiveData()),
-        ),
-      ],
-      child: const SeasonalView(),
+    return BlocProvider(
+      create: (context) =>
+          SeasonalAnimeBloc()..add(FetchSeasonalAnimeBySeason(year, season)),
+      child: ArchiveSeasonalView(year: year, season: season),
     );
+  }
+}
+
+class ArchiveSeasonalView extends StatefulWidget {
+  final int year;
+  final String season;
+
+  const ArchiveSeasonalView(
+      {super.key, required this.year, required this.season});
+
+  @override
+  State<ArchiveSeasonalView> createState() => _ArchiveSeasonalViewState();
+}
+
+class _ArchiveSeasonalViewState extends State<ArchiveSeasonalView> {
+  String selectedNav = 'This Season';
+  String selectedFilter = 'Members';
+  late String currentSeason;
+  late int currentYear;
+
+  @override
+  void initState() {
+    super.initState();
+    currentYear = widget.year;
+    currentSeason = widget.season;
+    _fetchAnime();
+  }
+
+  void _fetchAnime() {
+    context
+        .read<SeasonalAnimeBloc>()
+        .add(FetchSeasonalAnimeBySeason(currentYear, currentSeason));
+  }
+
+  void _navigateToSeason(String season) {
+    setState(() {
+      final thisSeason = _getCurrentSeason();
+      final thisYear = _getCurrentYear();
+
+      if (season == 'Last') {
+        currentSeason = getLastSeason(thisSeason);
+        currentYear = thisYear;
+        if (currentSeason == 'fall') {
+          currentYear--;
+        }
+      } else if (season == 'Next') {
+        currentSeason = getNextSeason(thisSeason);
+        currentYear = thisYear;
+        if (currentSeason == 'winter') {
+          currentYear++;
+        }
+      } else {
+        currentSeason = thisSeason;
+        currentYear = thisYear;
+      }
+      selectedNav = season;
+      // Reset Bloc state and fetch new data
+      context
+          .read<SeasonalAnimeBloc>()
+          .add(FetchSeasonalAnimeBySeason(currentYear, currentSeason));
+    });
   }
 
   static int _getCurrentYear() {
@@ -57,86 +113,19 @@ class SeasonalScreen extends StatelessWidget {
   }
 
   static String capitalize(String s) => s[0].toUpperCase() + s.substring(1);
-}
-
-class SeasonalView extends StatefulWidget {
-  const SeasonalView({super.key});
-
-  @override
-  State<SeasonalView> createState() => _SeasonalViewState();
-}
-
-class _SeasonalViewState extends State<SeasonalView> {
-  String selectedNav = 'This Season';
-  String selectedFilter = 'Members';
-  late String currentSeason;
-  late int currentYear;
-  bool showArchive = false;
-
-  @override
-  void initState() {
-    super.initState();
-    currentYear = SeasonalScreen._getCurrentYear();
-    currentSeason = SeasonalScreen._getCurrentSeason();
-    _fetchAnime();
-  }
-
-  void _fetchAnime() {
-    context
-        .read<SeasonalAnimeBloc>()
-        .add(FetchSeasonalAnimeBySeason(currentYear, currentSeason));
-  }
-
-  void _navigateToSeason(String season) {
-    setState(() {
-      final thisSeason = SeasonalScreen._getCurrentSeason();
-      final thisYear = SeasonalScreen._getCurrentYear();
-
-      if (season == 'Last') {
-        currentSeason = SeasonalScreen.getLastSeason(thisSeason);
-        currentYear = thisYear;
-        if (currentSeason == 'fall') {
-          currentYear--;
-        }
-      } else if (season == 'Next') {
-        currentSeason = SeasonalScreen.getNextSeason(thisSeason);
-        currentYear = thisYear;
-        if (currentSeason == 'winter') {
-          currentYear++;
-        }
-      } else {
-        currentSeason = thisSeason;
-        currentYear = thisYear;
-      }
-      selectedNav = season;
-      showArchive = false;
-      // Reset Bloc state and fetch new data
-      context
-          .read<SeasonalAnimeBloc>()
-          .add(FetchSeasonalAnimeBySeason(currentYear, currentSeason));
-    });
-  }
-
-  void _showArchive() {
-    setState(() {
-      showArchive = true;
-    });
-  }
-
-  void _fetchArchiveAnime(int year, String season) {
-    setState(() {
-      currentYear = year;
-      currentSeason = season;
-      showArchive = false;
-      context
-          .read<SeasonalAnimeBloc>()
-          .add(FetchSeasonalAnimeBySeason(currentYear, currentSeason));
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('Seasonal Anime'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
+      ),
       backgroundColor: Colors.white,
       body: SingleChildScrollView(
         child: Padding(
@@ -168,119 +157,60 @@ class _SeasonalViewState extends State<SeasonalView> {
                   ),
                   GestureDetector(
                     onTap: () {
-                      _showArchive();
+                      Navigator.pop(context);
                     },
-                    child: _buildNavText(context, 'Archive'),
+                    child: _buildNavText(context, 'Back'),
                   ),
                 ],
               ),
               const SizedBox(height: 16.0),
 
               // Dropdowns and Season Text
-              if (!showArchive) ...[
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _buildDropdown(
-                        ['TV', 'ONA', 'OVA', 'Movie', 'Special', 'TV Special']),
-                    Text(
-                      '${SeasonalScreen.capitalize(currentSeason)} $currentYear',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _buildDropdown(
+                      ['TV', 'ONA', 'OVA', 'Movie', 'Special', 'TV Special']),
+                  Text(
+                    '${capitalize(currentSeason)} $currentYear',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
                     ),
-                    _buildIconDropdown(),
-                  ],
-                ),
-                const SizedBox(height: 16.0),
-              ],
+                  ),
+                  _buildIconDropdown(),
+                ],
+              ),
+              const SizedBox(height: 16.0),
 
-              // Content
-              if (showArchive)
-                BlocBuilder<ArchiveBloc, ArchiveState>(
-                  builder: (context, state) {
-                    if (state is ArchiveLoading) {
-                      return const Center(child: CircularProgressIndicator());
-                    } else if (state is ArchiveLoaded) {
-                      return Column(
-                        children: state.archives.map((archive) {
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Center(
-                                child: Text(
-                                  '${archive.year}',
-                                  style: const TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 8.0),
-                              Wrap(
-                                alignment: WrapAlignment.center,
-                                spacing: 8.0,
-                                runSpacing: 8.0,
-                                children: archive.seasons.map((season) {
-                                  return GestureDetector(
-                                    onTap: () {
-                                      _fetchArchiveAnime(archive.year, season);
-                                    },
-                                    child: Chip(
-                                      label: Text(
-                                          SeasonalScreen.capitalize(season)),
-                                      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-                                      labelStyle: TextStyle(
-                                        color: currentYear == archive.year &&
-                                                currentSeason == season
-                                            ? Colors.blue
-                                            : Colors.black,
-                                      ),  
-                                    ),
-                                  );
-                                }).toList(),
-                              ),
-                              const SizedBox(height: 16.0),
-                            ],
-                          );
-                        }).toList(),
-                      );
-                    } else if (state is ArchiveError) {
-                      return Center(child: Text(state.message));
-                    } else {
-                      return const Center(child: Text('No data'));
-                    }
-                  },
-                )
-              else
-                BlocBuilder<SeasonalAnimeBloc, SeasonalAnimeState>(
-                  builder: (context, state) {
-                    if (state is SeasonalAnimeLoading) {
-                      return _buildShimmerGrid();
-                    } else if (state is SeasonalAnimeLoaded) {
-                      return GridView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          crossAxisSpacing: 16.0,
-                          mainAxisSpacing: 16.0,
-                          childAspectRatio: 0.7,
-                        ),
-                        itemCount: state.animes.length,
-                        itemBuilder: (context, index) {
-                          return _buildAnimeCard(state.animes[index]);
-                        },
-                      );
-                    } else if (state is SeasonalAnimeError) {
-                      return Center(child: Text(state.message));
-                    } else {
-                      return _buildShimmerGrid();
-                    }
-                  },
-                ),
+              // Anime List
+              BlocBuilder<SeasonalAnimeBloc, SeasonalAnimeState>(
+                builder: (context, state) {
+                  if (state is SeasonalAnimeLoading) {
+                    return _buildShimmerGrid();
+                  } else if (state is SeasonalAnimeLoaded) {
+                    return GridView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 16.0,
+                        mainAxisSpacing: 16.0,
+                        childAspectRatio: 0.7,
+                      ),
+                      itemCount: state.animes.length,
+                      itemBuilder: (context, index) {
+                        return _buildAnimeCard(state.animes[index]);
+                      },
+                    );
+                  } else if (state is SeasonalAnimeError) {
+                    return Center(child: Text(state.message));
+                  } else {
+                    return _buildShimmerGrid();
+                  }
+                },
+              ),
             ],
           ),
         ),
@@ -291,11 +221,7 @@ class _SeasonalViewState extends State<SeasonalView> {
   Widget _buildNavText(BuildContext context, String text) {
     return GestureDetector(
       onTap: () {
-        if (text == 'Archive') {
-          _showArchive();
-        } else {
-          _navigateToSeason(text);
-        }
+        _navigateToSeason(text);
       },
       child: Text(
         text,
