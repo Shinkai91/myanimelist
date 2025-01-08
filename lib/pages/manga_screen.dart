@@ -73,8 +73,8 @@ class _MangaScreenState extends State<MangaScreen> {
                 children: [
                   // Shimmer effect for loading state
                   _buildShimmerSection('Rekomendasi', isCarousel: true),
-                  _buildShimmerSection('Top Manga'),
-                  _buildShimmerSection('Top Publishing'),
+                  _buildShimmerSection('Top Manga', isCarousel: false),
+                  _buildShimmerSection('Top Publishing', isCarousel: false),
                 ],
               ),
             );
@@ -100,8 +100,9 @@ class _MangaScreenState extends State<MangaScreen> {
                         return _buildLoading(isCarousel: true);
                       } else if (state is MangaRecommendationLoaded) {
                         return Container(
-                          height: 200,
-                          margin: const EdgeInsets.symmetric(vertical: 16.0),
+                          height: 300, // Adjusted height for portrait posters
+                          margin: const EdgeInsets.symmetric(
+                              vertical: 8.0), // Reduce vertical margin
                           child: ListView.builder(
                             scrollDirection: Axis.horizontal,
                             itemCount: state.recommendations.length,
@@ -113,14 +114,14 @@ class _MangaScreenState extends State<MangaScreen> {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) =>
-                                          DetailPage(id: recommendation.malId),
+                                      builder: (context) => MangaDetailScreen(
+                                          id: recommendation.malId),
                                     ),
                                   );
                                 },
                                 child: Container(
                                   width:
-                                      MediaQuery.of(context).size.width * 0.8,
+                                      200, // Adjusted width for portrait posters
                                   margin: const EdgeInsets.symmetric(
                                       horizontal: 8.0),
                                   decoration: BoxDecoration(
@@ -128,9 +129,31 @@ class _MangaScreenState extends State<MangaScreen> {
                                   ),
                                   child: ClipRRect(
                                     borderRadius: BorderRadius.circular(8.0),
-                                    child: Image.network(
-                                      recommendation.imageUrl,
-                                      fit: BoxFit.cover,
+                                    child: Stack(
+                                      children: [
+                                        Image.network(
+                                          recommendation.imageUrl,
+                                          fit: BoxFit.cover,
+                                          width: double.infinity,
+                                          height: double.infinity,
+                                        ),
+                                        Positioned(
+                                          left: 0,
+                                          bottom: 0,
+                                          child: Container(
+                                            padding: const EdgeInsets.all(8.0),
+                                            color:
+                                                Colors.black.withOpacity(0.6),
+                                            child: Text(
+                                              recommendation.title,
+                                              style: const TextStyle(
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 ),
@@ -160,8 +183,8 @@ class _MangaScreenState extends State<MangaScreen> {
                 children: [
                   // Shimmer effect for loading state
                   _buildShimmerSection('Rekomendasi', isCarousel: true),
-                  _buildShimmerSection('Top Manga'),
-                  _buildShimmerSection('Top Publishing'),
+                  _buildShimmerSection('Top Manga', isCarousel: false),
+                  _buildShimmerSection('Top Publishing', isCarousel: false),
                 ],
               ),
             );
@@ -175,7 +198,7 @@ class _MangaScreenState extends State<MangaScreen> {
 
   Widget _buildLoading({bool isCarousel = false}) {
     return Container(
-      height: 200,
+      height: isCarousel ? 300 : 220, // Adjusted height for portrait posters
       margin: const EdgeInsets.symmetric(vertical: 16.0),
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
@@ -185,7 +208,8 @@ class _MangaScreenState extends State<MangaScreen> {
             baseColor: Colors.grey[300]!,
             highlightColor: Colors.grey[100]!,
             child: Container(
-              width: isCarousel ? MediaQuery.of(context).size.width * 0.8 : 120,
+              width:
+                  isCarousel ? 200 : 120, // Adjusted width for portrait posters
               margin: const EdgeInsets.symmetric(horizontal: 8.0),
               decoration: BoxDecoration(
                 color: Colors.white,
@@ -215,7 +239,8 @@ class _MangaScreenState extends State<MangaScreen> {
           ),
           const SizedBox(height: 8.0),
           SizedBox(
-            height: 200,
+            height:
+                isCarousel ? 300 : 220, // Adjusted height for portrait posters
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               itemCount: 5, // Number of shimmer items
@@ -225,8 +250,8 @@ class _MangaScreenState extends State<MangaScreen> {
                   highlightColor: Colors.grey[100]!,
                   child: Container(
                     width: isCarousel
-                        ? MediaQuery.of(context).size.width * 0.8
-                        : 120,
+                        ? 200
+                        : 120, // Adjusted width for portrait posters
                     margin: const EdgeInsets.symmetric(horizontal: 8.0),
                     decoration: BoxDecoration(
                       color: Colors.white,
@@ -254,7 +279,7 @@ class _MangaScreenState extends State<MangaScreen> {
           ),
           const SizedBox(height: 8.0),
           SizedBox(
-            height: 200,
+            height: 220,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               itemCount: mangas.length,
@@ -265,34 +290,99 @@ class _MangaScreenState extends State<MangaScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => DetailPage(id: manga.malId),
+                        builder: (context) =>
+                            MangaDetailScreen(id: manga.malId),
                       ),
                     );
                   },
                   child: Container(
                     width: 120,
-                    margin: const EdgeInsets.symmetric(horizontal: 8.0),
+                    margin: const EdgeInsets.symmetric(
+                        vertical: 4.0, horizontal: 8.0),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(8.0),
                       color: Colors.white,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.5),
+                          spreadRadius: 2,
+                          blurRadius: 5,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
                     ),
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(8.0),
-                          child: Image.network(
-                            manga.imageUrl,
-                            fit: BoxFit.cover,
-                            height: 150,
-                            width: 120,
+                        Stack(
+                          children: [
+                            Container(
+                              height: 150,
+                              width: double.infinity,
+                              decoration: BoxDecoration(
+                                borderRadius: const BorderRadius.only(
+                                  topLeft: Radius.circular(8.0),
+                                  topRight: Radius.circular(8.0),
+                                ),
+                                image: DecorationImage(
+                                  image: NetworkImage(manga.imageUrl),
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            ),
+                            Positioned(
+                              bottom: 0,
+                              left: 0,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8.0, vertical: 4.0),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withOpacity(0.7),
+                                  borderRadius: const BorderRadius.only(
+                                    topRight: Radius.circular(4.0),
+                                    bottomRight: Radius.circular(4.0),
+                                  ),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Score: ${manga.score == 0.0 ? 'N/A' : manga.score}',
+                                      style: const TextStyle(
+                                          color: Colors.white, fontSize: 10),
+                                    ),
+                                    Text(
+                                      'Members: ${manga.members}',
+                                      style: const TextStyle(
+                                          color: Colors.white, fontSize: 10),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text(
+                            manga.title,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        const SizedBox(height: 8.0),
-                        Text(
-                          manga.title,
-                          style: Theme.of(context).textTheme.bodySmall,
-                          textAlign: TextAlign.center,
-                          overflow: TextOverflow.ellipsis,
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                          child: Text(
+                            manga.genres.join(', '),
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                       ],
                     ),

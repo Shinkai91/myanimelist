@@ -3,18 +3,20 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:myanimelist/model/detail.dart';
 import 'package:shimmer/shimmer.dart';
 import 'dart:async';
+import 'package:connectivity_plus/connectivity_plus.dart';
 
 import 'package:myanimelist/bloc/anime_bloc.dart';
 import 'package:myanimelist/bloc/anime_rekomendasi_bloc.dart';
 import 'package:myanimelist/bloc/detail_bloc.dart'; // Import DetailBloc
 import 'package:myanimelist/model/anime.dart';
 import 'package:myanimelist/model/rekomendasi.dart';
-import 'package:myanimelist/pages/detail_screen.dart';
+import 'package:myanimelist/pages/anime_detail_screen.dart';
 import 'package:myanimelist/pages/manga_screen.dart';
 import 'package:myanimelist/pages/seasonal_screen.dart';
 import 'package:myanimelist/pages/search_screen.dart';
 import 'package:myanimelist/pages/favorite_screen.dart';
 import 'package:myanimelist/pages/profile_screen.dart';
+import 'package:myanimelist/pages/offline_screen.dart';
 import 'package:myanimelist/widgets/appbar.dart';
 import 'package:myanimelist/widgets/navigation.dart';
 
@@ -29,6 +31,7 @@ class _HomeScreenState extends State<HomeScreen> {
   late Timer _timer;
   late DateTime _currentTime;
   int _pageIndex = 0;
+  bool _isOffline = false;
 
   List<Anime> topAnimes = [];
   List<Anime> airingAnimes = [];
@@ -44,11 +47,42 @@ class _HomeScreenState extends State<HomeScreen> {
       });
     });
 
+    _checkConnectivity();
+
+    Connectivity().onConnectivityChanged.listen((List<ConnectivityResult> results) {
+      final result = results.isNotEmpty ? results.first : ConnectivityResult.none;
+      if (result == ConnectivityResult.none) {
+        setState(() {
+          _isOffline = true;
+        });
+      } else {
+        setState(() {
+          _isOffline = false;
+          _fetchData();
+        });
+      }
+    });
+
     // Fetch anime data
     _fetchData();
   }
 
+  Future<void> _checkConnectivity() async {
+    final ConnectivityResult result = (await Connectivity().checkConnectivity()) as ConnectivityResult;
+    if (result == ConnectivityResult.none) {
+      setState(() {
+        _isOffline = true;
+      });
+    } else {
+      setState(() {
+        _isOffline = false;
+        _fetchData();
+      });
+    }
+  }
+
   Future<void> _fetchData() async {
+    if (_isOffline) return;
     context.read<AnimeBloc>().add(const FetchAnime());
     context.read<AnimeBloc>().add(const FetchAnime(filter: 'airing'));
     context.read<AnimeRecommendationBloc>().add(FetchAnimeRecommendations());
@@ -62,6 +96,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isOffline) {
+      return OfflineScreen(
+        onRetry: _checkConnectivity,
+      );
+    }
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: CustomAppBar(currentTime: _currentTime),
@@ -141,8 +181,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   // Shimmer effect for loading state
                   _buildShimmerSection('Rekomendasi', isCarousel: true),
-                  _buildShimmerSection('Top Anime'),
-                  _buildShimmerSection('Top Airing'),
+                  _buildShimmerSection('Top Anime', isCarousel: false),
+                  _buildShimmerSection('Top Airing', isCarousel: false),
                 ],
               ),
             );
@@ -184,7 +224,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) =>
-                                          DetailPage(id: recommendation.malId),
+                                          AnimeDetailScreen(id: recommendation.malId),
                                     ),
                                   );
                                 },
@@ -229,8 +269,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   // Shimmer effect for loading state
                   _buildShimmerSection('Rekomendasi', isCarousel: true),
-                  _buildShimmerSection('Top Anime'),
-                  _buildShimmerSection('Top Airing'),
+                  _buildShimmerSection('Top Anime', isCarousel: false),
+                  _buildShimmerSection('Top Airing', isCarousel: false),
                 ],
               ),
             );
@@ -244,7 +284,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildLoading({bool isCarousel = false}) {
     return Container(
-      height: 300, // Adjusted height for portrait posters
+      height: isCarousel ? 300 : 220, // Adjusted height for portrait posters
       margin: const EdgeInsets.symmetric(vertical: 16.0),
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
@@ -254,7 +294,8 @@ class _HomeScreenState extends State<HomeScreen> {
             baseColor: Colors.grey[300]!,
             highlightColor: Colors.grey[100]!,
             child: Container(
-              width: 200, // Adjusted width for portrait posters
+              width:
+                  isCarousel ? 200 : 120, // Adjusted width for portrait posters
               margin: const EdgeInsets.symmetric(horizontal: 8.0),
               decoration: BoxDecoration(
                 color: Colors.white,
@@ -284,7 +325,8 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const SizedBox(height: 8.0),
           SizedBox(
-            height: 300, // Adjusted height for portrait posters
+            height:
+                isCarousel ? 300 : 220, // Adjusted height for portrait posters
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               itemCount: 5, // Number of shimmer items
@@ -293,7 +335,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   baseColor: Colors.grey[300]!,
                   highlightColor: Colors.grey[100]!,
                   child: Container(
-                    width: 200, // Adjusted width for portrait posters
+                    width: isCarousel
+                        ? 200
+                        : 120, // Adjusted width for portrait posters
                     margin: const EdgeInsets.symmetric(horizontal: 8.0),
                     decoration: BoxDecoration(
                       color: Colors.white,
@@ -332,7 +376,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => DetailPage(id: anime.malId),
+                        builder: (context) => AnimeDetailScreen(id: anime.malId),
                       ),
                     );
                   },
@@ -467,7 +511,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   color: Colors.black.withOpacity(0.6),
                   borderRadius: const BorderRadius.only(
                     topRight: Radius.circular(4.0),
-                    bottomRight: Radius.circular(4.0),
                   ),
                 ),
                 child: Column(

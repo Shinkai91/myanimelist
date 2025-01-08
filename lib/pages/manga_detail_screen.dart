@@ -1,26 +1,65 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:myanimelist/bloc/manga_detail_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:myanimelist/pages/offline_screen.dart';
 
-class DetailPage extends StatefulWidget {
+class MangaDetailScreen extends StatefulWidget {
   final int id;
 
-  const DetailPage({super.key, required this.id});
+  const MangaDetailScreen({super.key, required this.id});
 
   @override
-  State<DetailPage> createState() => _MangaDetailPageState();
+  State<MangaDetailScreen> createState() => _MangaDetailPageState();
 }
 
-class _MangaDetailPageState extends State<DetailPage> {
+class _MangaDetailPageState extends State<MangaDetailScreen> {
+  late StreamSubscription<ConnectivityResult> _connectivitySubscription;
+  bool _isOffline = false;
+
   @override
   void initState() {
     super.initState();
+    _checkConnectivity();
+
+    Connectivity()
+        .onConnectivityChanged
+        .listen((List<ConnectivityResult> results) {
+      final result =
+          results.isNotEmpty ? results.first : ConnectivityResult.none;
+      if (result == ConnectivityResult.none) {
+        setState(() {
+          _isOffline = true;
+        });
+      } else {
+        setState(() {
+          _isOffline = false;
+        });
+      }
+    });
+  }
+
+  Future<void> _checkConnectivity() async {
+    final ConnectivityResult result =
+        (await Connectivity().checkConnectivity()) as ConnectivityResult;
+    if (result == ConnectivityResult.none) {
+      setState(() {
+        _isOffline = true;
+      });
+    } else {
+      setState(() {
+        _isOffline = false;
+      });
+    }
   }
 
   @override
   void dispose() {
+    _connectivitySubscription.cancel();
     super.dispose();
   }
 
@@ -70,6 +109,11 @@ class _MangaDetailPageState extends State<DetailPage> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isOffline) {
+      return OfflineScreen(
+        onRetry: _checkConnectivity,
+      );
+    }
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -329,10 +373,6 @@ class _MangaDetailPageState extends State<DetailPage> {
                           ],
                         ),
                       );
-                    } else if (state is MangaDetailError) {
-                      return const Center(
-                        child: Text('Failed to load manga detail'),
-                      );
                     } else if (state is MangaDetailLoaded) {
                       final mangaDetail = state.mangaDetail;
                       debugPrint('Manga Detail: $mangaDetail');
@@ -470,7 +510,7 @@ class _MangaDetailPageState extends State<DetailPage> {
                       );
                     } else {
                       return const Center(
-                        child: Text('No data available'),
+                        child: Text(''),
                       );
                     }
                   },

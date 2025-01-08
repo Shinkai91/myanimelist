@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:myanimelist/model/character.dart';
@@ -5,24 +7,61 @@ import 'package:shimmer/shimmer.dart';
 import 'package:myanimelist/bloc/detail_bloc.dart';
 import 'package:myanimelist/bloc/karakter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:myanimelist/pages/offline_screen.dart';
 
-class DetailPage extends StatefulWidget {
+class AnimeDetailScreen extends StatefulWidget {
   final int id;
 
-  const DetailPage({super.key, required this.id});
+  const AnimeDetailScreen({super.key, required this.id});
 
   @override
-  State<DetailPage> createState() => _AnimeDetailPageState();
+  State<AnimeDetailScreen> createState() => _AnimeDetailPageState();
 }
 
-class _AnimeDetailPageState extends State<DetailPage> {
+class _AnimeDetailPageState extends State<AnimeDetailScreen> {
+  late StreamSubscription<ConnectivityResult> _connectivitySubscription;
+  bool _isOffline = false;
+
   @override
   void initState() {
     super.initState();
+    _checkConnectivity();
+
+    Connectivity()
+        .onConnectivityChanged
+        .listen((List<ConnectivityResult> results) {
+      final result =
+          results.isNotEmpty ? results.first : ConnectivityResult.none;
+      if (result == ConnectivityResult.none) {
+        setState(() {
+          _isOffline = true;
+        });
+      } else {
+        setState(() {
+          _isOffline = false;
+        });
+      }
+    });
+  }
+
+  Future<void> _checkConnectivity() async {
+    final ConnectivityResult result =
+        (await Connectivity().checkConnectivity()) as ConnectivityResult;
+    if (result == ConnectivityResult.none) {
+      setState(() {
+        _isOffline = true;
+      });
+    } else {
+      setState(() {
+        _isOffline = false;
+      });
+    }
   }
 
   @override
   void dispose() {
+    _connectivitySubscription.cancel();
     super.dispose();
   }
 
@@ -72,6 +111,11 @@ class _AnimeDetailPageState extends State<DetailPage> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isOffline) {
+      return OfflineScreen(
+        onRetry: _checkConnectivity,
+      );
+    }
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -338,10 +382,6 @@ class _AnimeDetailPageState extends State<DetailPage> {
                             ),
                           ],
                         ),
-                      );
-                    } else if (state is AnimeDetailError) {
-                      return const Center(
-                        child: Text('Failed to load anime detail'),
                       );
                     } else if (state is AnimeDetailLoaded) {
                       final animeDetail = state.animeDetail;
@@ -756,7 +796,7 @@ class _AnimeDetailPageState extends State<DetailPage> {
                       );
                     } else {
                       return const Center(
-                        child: Text('No data available'),
+                        child: Text(''),
                       );
                     }
                   },

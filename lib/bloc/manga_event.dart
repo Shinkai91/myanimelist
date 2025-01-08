@@ -15,3 +15,12 @@ class FetchManga extends MangaEvent {
   @override
   List<Object> get props => [filter];
 }
+
+class SearchManga extends MangaEvent {
+  final String query;
+
+  const SearchManga(this.query);
+
+  @override
+  List<Object> get props => [query];
+}
