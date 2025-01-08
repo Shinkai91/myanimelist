@@ -7,7 +7,7 @@ import 'package:myanimelist/bloc/anime_bloc.dart';
 import 'package:myanimelist/bloc/anime_rekomendasi_bloc.dart';
 import 'package:myanimelist/model/anime.dart';
 import 'package:myanimelist/model/rekomendasi.dart';
-import 'package:myanimelist/pages/anime_detail_screen.dart';
+import 'package:myanimelist/pages/detail_screen.dart';
 import 'package:myanimelist/pages/manga_screen.dart';
 import 'package:myanimelist/pages/seasonal_screen.dart';
 import 'package:myanimelist/pages/search_screen.dart';
@@ -176,21 +176,64 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ),
                                   );
                                 },
-                                child: Container(
-                                  width:
-                                      MediaQuery.of(context).size.width * 0.8,
-                                  margin: const EdgeInsets.symmetric(
-                                      horizontal: 8.0),
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(8.0),
-                                  ),
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(8.0),
-                                    child: Image.network(
-                                      recommendation.imageUrl,
-                                      fit: BoxFit.cover,
+                                child: Stack(
+                                  children: [
+                                    Container(
+                                      width: MediaQuery.of(context).size.width *
+                                          0.8,
+                                      margin: const EdgeInsets.symmetric(
+                                          horizontal: 8.0),
+                                      decoration: BoxDecoration(
+                                        borderRadius:
+                                            BorderRadius.circular(8.0),
+                                      ),
+                                      child: ClipRRect(
+                                        borderRadius:
+                                            BorderRadius.circular(8.0),
+                                        child: Stack(
+                                          children: [
+                                            Image.network(
+                                              recommendation.imageUrl,
+                                              fit: BoxFit.cover,
+                                              width: double.infinity,
+                                              height: double.infinity,
+                                            ),
+                                            Positioned(
+                                              left: 0,
+                                              bottom: 0,
+                                              child: Container(
+                                                padding:
+                                                    const EdgeInsets.all(8.0),
+                                                color: Colors.black
+                                                    .withOpacity(0.6),
+                                                child: Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      'Score: ${recommendation.score}',
+                                                      style: const TextStyle(
+                                                          color: Colors.white),
+                                                    ),
+                                                    Text(
+                                                      'Members: ${recommendation.members}',
+                                                      style: const TextStyle(
+                                                          color: Colors.white),
+                                                    ),
+                                                    Text(
+                                                      'Genres: ${recommendation.genres.join(', ')}',
+                                                      style: const TextStyle(
+                                                          color: Colors.white),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
                                     ),
-                                  ),
+                                  ],
                                 ),
                               );
                             },
@@ -312,7 +355,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const SizedBox(height: 8.0),
           SizedBox(
-            height: 200,
+            height: 220,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               itemCount: animes.length,
@@ -327,36 +370,103 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     );
                   },
-                  child: Container(
-                    width: 120,
-                    margin: const EdgeInsets.symmetric(horizontal: 8.0),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8.0),
-                      color: Colors.white,
-                    ),
-                    child: Column(
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(8.0),
-                          child: Image.network(
-                            anime.imageUrl,
-                            fit: BoxFit.cover,
-                            height: 150,
-                            width: 120,
-                          ),
-                        ),
-                        const SizedBox(height: 8.0),
-                        Text(
-                          anime.title,
-                          style: Theme.of(context).textTheme.bodySmall,
-                          textAlign: TextAlign.center,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
-                  ),
+                  child: _buildAnimeCard(anime),
                 );
               },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAnimeCard(Anime anime) {
+    return Container(
+      width: 120,
+      margin: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8.0),
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.5),
+            spreadRadius: 2,
+            blurRadius: 5,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Stack(
+            children: [
+              Container(
+                height: 150,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(8.0),
+                    topRight: Radius.circular(8.0),
+                  ),
+                  image: DecorationImage(
+                    image: NetworkImage(anime.imageUrl),
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+              Positioned(
+                bottom: 0,
+                left: 0,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 8.0, vertical: 4.0),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.7),
+                    borderRadius: const BorderRadius.only(
+                      topRight: Radius.circular(4.0),
+                      bottomRight: Radius.circular(4.0),
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Score: ${anime.score == 0.0 ? 'N/A' : anime.score}',
+                        style:
+                            const TextStyle(color: Colors.white, fontSize: 10),
+                      ),
+                      Text(
+                        'Members: ${anime.members}',
+                        style:
+                            const TextStyle(color: Colors.white, fontSize: 10),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(
+              anime.title,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            child: Text(
+              anime.genres.join(', '),
+              style: const TextStyle(
+                fontSize: 12,
+                color: Colors.grey,
+              ),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],

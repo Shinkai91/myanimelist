@@ -15,3 +15,12 @@ class FetchAnime extends AnimeEvent {
   @override
   List<Object> get props => [filter ?? ''];
 }
+
+class SearchAnime extends AnimeEvent {
+  final String query;
+
+  const SearchAnime(this.query);
+
+  @override
+  List<Object> get props => [query];
+}

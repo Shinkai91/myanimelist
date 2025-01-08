@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:myanimelist/bloc/seasonal_bloc.dart';
 import 'package:myanimelist/bloc/archive_bloc.dart';
 import 'package:myanimelist/model/seasonal.dart';
-import 'package:myanimelist/pages/anime_detail_screen.dart';
+import 'package:myanimelist/pages/detail_screen.dart';
 import 'package:shimmer/shimmer.dart';
 
 class SeasonalScreen extends StatelessWidget {

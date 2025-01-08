@@ -43,6 +43,7 @@ dependencies:
   flutter_bloc: ^8.1.6
   url_launcher: ^6.3.1
   font_awesome_flutter: ^10.8.0
+  shared_preferences: ^2.3.5
 
 dev_dependencies:
   flutter_test:
