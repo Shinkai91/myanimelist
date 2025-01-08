@@ -15,19 +15,23 @@ class MangaDetailBloc extends Bloc<MangaDetailEvent, MangaDetailState> {
   Future<void> _onFetchMangaDetail(
       FetchMangaDetail event, Emitter<MangaDetailState> emit) async {
     emit(MangaDetailLoading());
-    try {
-      final response = await http
-          .get(Uri.parse('https://api.jikan.moe/v4/manga/${event.id}/full'));
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body)['data'];
-        final mangaDetail = MangaDetail.fromJson(data);
-        emit(MangaDetailLoaded(mangaDetail: mangaDetail));
-      } else {
-        // ignore: prefer_const_constructors
-        emit(MangaDetailError(message: 'Failed to load manga detail'));
+    bool success = false;
+    while (!success) {
+      try {
+        final response = await http
+            .get(Uri.parse('https://api.jikan.moe/v4/manga/${event.id}/full'));
+        if (response.statusCode == 200) {
+          final data = json.decode(response.body)['data'];
+          final mangaDetail = MangaDetail.fromJson(data);
+          emit(MangaDetailLoaded(mangaDetail: mangaDetail));
+          success = true;
+        } else {
+          // ignore: prefer_const_constructors
+          emit(MangaDetailError(message: 'Failed to load manga detail'));
+        }
+      } catch (e) {
+        emit(MangaDetailError(message: e.toString()));
       }
-    } catch (e) {
-      emit(MangaDetailError(message: e.toString()));
     }
   }
 }

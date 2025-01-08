@@ -16,22 +16,26 @@ class MangaRecommendationBloc
   Future<void> _onFetchMangaRecommendations(FetchMangaRecommendations event,
       Emitter<MangaRecommendationState> emit) async {
     emit(MangaRecommendationLoading());
-    try {
-      final response = await http
-          .get(Uri.parse('https://api.jikan.moe/v4/recommendations/manga'));
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        final List<dynamic> recommendationsJson = data['data'];
-        final recommendations = recommendationsJson
-            .map((json) => MangaRecommendation.fromJson(json))
-            .toList();
-        emit(MangaRecommendationLoaded(recommendations: recommendations));
-      } else {
-        emit(const MangaRecommendationError(
-            message: 'Failed to load manga recommendations'));
+    bool success = false;
+    while (!success) {
+      try {
+        final response = await http
+            .get(Uri.parse('https://api.jikan.moe/v4/recommendations/manga'));
+        if (response.statusCode == 200) {
+          final data = json.decode(response.body);
+          final List<dynamic> recommendationsJson = data['data'];
+          final recommendations = recommendationsJson
+              .map((json) => MangaRecommendation.fromJson(json))
+              .toList();
+          emit(MangaRecommendationLoaded(recommendations: recommendations));
+          success = true;
+        } else {
+          emit(const MangaRecommendationError(
+              message: 'Failed to load manga recommendations'));
+        }
+      } catch (e) {
+        emit(MangaRecommendationError(message: e.toString()));
       }
-    } catch (e) {
-      emit(MangaRecommendationError(message: e.toString()));
     }
   }
 }

@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:myanimelist/bloc/seasonal_bloc.dart';
 import 'package:myanimelist/bloc/archive_bloc.dart';
 import 'package:myanimelist/model/seasonal.dart';
+import 'package:myanimelist/pages/anime_detail_screen.dart';
 import 'package:shimmer/shimmer.dart';
 
 class SeasonalScreen extends StatelessWidget {
@@ -15,7 +16,7 @@ class SeasonalScreen extends StatelessWidget {
         BlocProvider(
           create: (context) => SeasonalAnimeBloc()
             ..add(FetchSeasonalAnimeBySeason(
-                _getCurrentYear(), _getCurrentSeason())),
+                _getCurrentYear(), _getCurrentSeason(), 'TV')),
         ),
         BlocProvider(
           create: (context) => ArchiveBloc()..add(FetchArchiveData()),
@@ -69,6 +70,7 @@ class SeasonalView extends StatefulWidget {
 class _SeasonalViewState extends State<SeasonalView> {
   String selectedNav = 'This Season';
   String selectedFilter = 'Members';
+  String selectedType = 'TV';
   late String currentSeason;
   late int currentYear;
   bool showArchive = false;
@@ -83,9 +85,8 @@ class _SeasonalViewState extends State<SeasonalView> {
   }
 
   void _fetchAnime() {
-    context
-        .read<SeasonalAnimeBloc>()
-        .add(FetchSeasonalAnimeBySeason(currentYear, currentSeason));
+    context.read<SeasonalAnimeBloc>().add(
+        FetchSeasonalAnimeBySeason(currentYear, currentSeason, selectedType));
   }
 
   void _navigateToSeason(String season) {
@@ -110,18 +111,19 @@ class _SeasonalViewState extends State<SeasonalView> {
         currentYear = thisYear;
       }
       selectedNav = season;
+      selectedType = 'TV'; // Reset filter to default
       showArchive = false;
       showArchiveAnime = false;
       // Reset Bloc state and fetch new data
-      context
-          .read<SeasonalAnimeBloc>()
-          .add(FetchSeasonalAnimeBySeason(currentYear, currentSeason));
+      context.read<SeasonalAnimeBloc>().add(
+          FetchSeasonalAnimeBySeason(currentYear, currentSeason, selectedType));
     });
   }
 
   void _showArchive() {
     setState(() {
       selectedNav = 'Archive'; // Pastikan "Archive" menjadi nilai aktif
+      selectedType = 'TV'; // Reset filter to default
       showArchive = true;
       showArchiveAnime = false;
     });
@@ -133,9 +135,8 @@ class _SeasonalViewState extends State<SeasonalView> {
       currentSeason = season;
       showArchive = false;
       showArchiveAnime = true;
-      context
-          .read<SeasonalAnimeBloc>()
-          .add(FetchSeasonalAnimeBySeason(currentYear, currentSeason));
+      context.read<SeasonalAnimeBloc>().add(
+          FetchSeasonalAnimeBySeason(currentYear, currentSeason, selectedType));
     });
   }
 
@@ -191,16 +192,20 @@ class _SeasonalViewState extends State<SeasonalView> {
                         _showArchive(); // Kembali ke Archive Screen
                       },
                     ),
-                    Text(
-                      '${SeasonalScreen.capitalize(currentSeason)} $currentYear',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+                    Expanded(
+                      child: Center(
+                        child: Text(
+                          '${SeasonalScreen.capitalize(currentSeason)} $currentYear',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                     ),
+                    const SizedBox(width: 48), // Placeholder for alignment
                   ],
                 ),
-                const SizedBox(height: 16.0),
               ],
 
               // Dropdowns and Current Season/Year
@@ -209,14 +214,15 @@ class _SeasonalViewState extends State<SeasonalView> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     _buildDropdown(
-                        ['TV', 'ONA', 'OVA', 'Movie', 'Special', 'TV Special']),
-                    Text(
-                      '${SeasonalScreen.capitalize(currentSeason)} $currentYear',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+                        ['TV', 'Movie', 'OVA', 'Special', 'ONA', 'Music']),
+                    if (!showArchiveAnime)
+                      Text(
+                        '${SeasonalScreen.capitalize(currentSeason)} $currentYear',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
                     _buildIconDropdown(),
                   ],
                 ),
@@ -228,7 +234,7 @@ class _SeasonalViewState extends State<SeasonalView> {
                 BlocBuilder<ArchiveBloc, ArchiveState>(
                   builder: (context, state) {
                     if (state is ArchiveLoading) {
-                      return const Center(child: CircularProgressIndicator());
+                      return _buildShimmerArchive();
                     } else if (state is ArchiveLoaded) {
                       return Column(
                         children: state.archives.map((archive) {
@@ -293,7 +299,19 @@ class _SeasonalViewState extends State<SeasonalView> {
                         ),
                         itemCount: state.animes.length,
                         itemBuilder: (context, index) {
-                          return _buildAnimeCard(state.animes[index]);
+                          return GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => DetailPage(
+                                    id: state.animes[index].malId,
+                                  ),
+                                ),
+                              );
+                            },
+                            child: _buildAnimeCard(state.animes[index]),
+                          );
                         },
                       );
                     } else if (state is SeasonalAnimeError) {
@@ -336,9 +354,12 @@ class _SeasonalViewState extends State<SeasonalView> {
   Widget _buildDropdown(List<String> items) {
     return DropdownButton<String>(
       dropdownColor: Colors.white,
-      value: items.first,
+      value: selectedType,
       onChanged: (String? newValue) {
-        // Handle dropdown change
+        setState(() {
+          selectedType = newValue!;
+          _fetchAnime(); // Refresh data when dropdown value changes
+        });
       },
       items: items.map<DropdownMenuItem<String>>((String value) {
         return DropdownMenuItem<String>(
@@ -568,6 +589,47 @@ class _SeasonalViewState extends State<SeasonalView> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildShimmerArchive() {
+    return Column(
+      children: List.generate(10, (index) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Shimmer.fromColors(
+              baseColor: Colors.grey[300]!,
+              highlightColor: Colors.grey[100]!,
+              child: Container(
+                height: 20,
+                width: 100,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 8.0),
+            Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 8.0,
+              runSpacing: 8.0,
+              children: List.generate(4, (index) {
+                return Shimmer.fromColors(
+                  baseColor: Colors.grey[300]!,
+                  highlightColor: Colors.grey[100]!,
+                  child: Chip(
+                    label: Container(
+                      width: 50,
+                      height: 20,
+                      color: Colors.white,
+                    ),
+                  ),
+                );
+              }),
+            ),
+            const SizedBox(height: 16.0),
+          ],
+        );
+      }),
     );
   }
 }

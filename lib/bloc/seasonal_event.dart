@@ -10,9 +10,10 @@ abstract class SeasonalAnimeEvent extends Equatable {
 class FetchSeasonalAnimeBySeason extends SeasonalAnimeEvent {
   final int year;
   final String season;
+  final String type;
 
-  const FetchSeasonalAnimeBySeason(this.year, this.season);
+  const FetchSeasonalAnimeBySeason(this.year, this.season, this.type);
 
   @override
-  List<Object> get props => [year, season];
+  List<Object> get props => [year, season, type];
 }

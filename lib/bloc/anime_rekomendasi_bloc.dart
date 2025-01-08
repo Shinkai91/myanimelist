@@ -16,20 +16,24 @@ class AnimeRecommendationBloc
   Future<void> _onFetchAnimeRecommendations(FetchAnimeRecommendations event,
       Emitter<AnimeRecommendationState> emit) async {
     emit(AnimeRecommendationLoading());
-    try {
-      final response = await http
-          .get(Uri.parse('https://api.jikan.moe/v4/recommendations/anime'));
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body)['data'] as List;
-        final recommendations =
-            data.map((json) => AnimeRecommendation.fromJson(json)).toList();
-        emit(AnimeRecommendationLoaded(recommendations: recommendations));
-      } else {
-        emit(const AnimeRecommendationError(
-            message: 'Failed to load recommendations'));
+    bool success = false;
+    while (!success) {
+      try {
+        final response = await http
+            .get(Uri.parse('https://api.jikan.moe/v4/recommendations/anime'));
+        if (response.statusCode == 200) {
+          final data = json.decode(response.body)['data'] as List;
+          final recommendations =
+              data.map((json) => AnimeRecommendation.fromJson(json)).toList();
+          emit(AnimeRecommendationLoaded(recommendations: recommendations));
+          success = true;
+        } else {
+          emit(const AnimeRecommendationError(
+              message: 'Failed to load recommendations'));
+        }
+      } catch (e) {
+        emit(AnimeRecommendationError(message: e.toString()));
       }
-    } catch (e) {
-      emit(AnimeRecommendationError(message: e.toString()));
     }
   }
 }

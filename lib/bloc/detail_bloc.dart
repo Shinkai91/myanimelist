@@ -12,18 +12,25 @@ class AnimeDetailBloc extends Bloc<AnimeDetailEvent, AnimeDetailState> {
     on<FetchAnimeDetail>(_onFetchAnimeDetail);
   }
 
-  Future<void> _onFetchAnimeDetail(FetchAnimeDetail event, Emitter<AnimeDetailState> emit) async {
+  Future<void> _onFetchAnimeDetail(
+      FetchAnimeDetail event, Emitter<AnimeDetailState> emit) async {
     emit(AnimeDetailLoading());
-    try {
-      final response = await http.get(Uri.parse('https://api.jikan.moe/v4/anime/${event.animeId}/full'));
-      if (response.statusCode == 200) {
-        final animeDetail = AnimeDetail.fromJson(json.decode(response.body)['data']);
-        emit(AnimeDetailLoaded(animeDetail));
-      } else {
+    bool success = false;
+    while (!success) {
+      try {
+        final response = await http.get(
+            Uri.parse('https://api.jikan.moe/v4/anime/${event.animeId}/full'));
+        if (response.statusCode == 200) {
+          final animeDetail =
+              AnimeDetail.fromJson(json.decode(response.body)['data']);
+          emit(AnimeDetailLoaded(animeDetail));
+          success = true;
+        } else {
+          emit(AnimeDetailError());
+        }
+      } catch (_) {
         emit(AnimeDetailError());
       }
-    } catch (_) {
-      emit(AnimeDetailError());
     }
   }
 }

@@ -11,23 +11,28 @@ class AnimeBloc extends Bloc<AnimeEvent, AnimeState> {
   AnimeBloc() : super(AnimeInitial()) {
     on<FetchAnime>((event, emit) async {
       emit(AnimeLoading());
-      try {
-        final queryParameters = {
-          if (event.filter != null) 'filter': event.filter!,
-        };
-        final uri = Uri.https('api.jikan.moe', '/v4/top/anime', queryParameters);
-        final response = await http.get(uri);
-        if (response.statusCode == 200) {
-          final data = json.decode(response.body);
-          final animes = (data['data'] as List)
-              .map((anime) => Anime.fromJson(anime, filter: event.filter))
-              .toList();
-          emit(AnimeLoaded(animes));
-        } else {
-          emit(const AnimeError('Failed to load anime'));
+      bool success = false;
+      while (!success) {
+        try {
+          final queryParameters = {
+            if (event.filter != null) 'filter': event.filter!,
+          };
+          final uri =
+              Uri.https('api.jikan.moe', '/v4/top/anime', queryParameters);
+          final response = await http.get(uri);
+          if (response.statusCode == 200) {
+            final data = json.decode(response.body);
+            final animes = (data['data'] as List)
+                .map((anime) => Anime.fromJson(anime, filter: event.filter))
+                .toList();
+            emit(AnimeLoaded(animes));
+            success = true;
+          } else {
+            emit(const AnimeError('Failed to load anime'));
+          }
+        } catch (e) {
+          emit(AnimeError('An error occurred: $e'));
         }
-      } catch (e) {
-        emit(AnimeError('An error occurred: $e'));
       }
     });
   }

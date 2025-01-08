@@ -11,18 +11,23 @@ class ArchiveBloc extends Bloc<ArchiveEvent, ArchiveState> {
   ArchiveBloc() : super(ArchiveInitial()) {
     on<FetchArchiveData>((event, emit) async {
       emit(ArchiveLoading());
-      try {
-        final response =
-            await http.get(Uri.parse('https://api.jikan.moe/v4/seasons'));
-        if (response.statusCode == 200) {
-          final List<dynamic> data = json.decode(response.body)['data'];
-          final archives = data.map((json) => Archive.fromJson(json)).toList();
-          emit(ArchiveLoaded(archives));
-        } else {
-          emit(const ArchiveError('Failed to fetch data'));
+      bool success = false;
+      while (!success) {
+        try {
+          final response =
+              await http.get(Uri.parse('https://api.jikan.moe/v4/seasons'));
+          if (response.statusCode == 200) {
+            final List<dynamic> data = json.decode(response.body)['data'];
+            final archives =
+                data.map((json) => Archive.fromJson(json)).toList();
+            emit(ArchiveLoaded(archives));
+            success = true;
+          } else {
+            emit(const ArchiveError('Failed to fetch data'));
+          }
+        } catch (e) {
+          emit(ArchiveError(e.toString()));
         }
-      } catch (e) {
-        emit(ArchiveError(e.toString()));
       }
     });
   }

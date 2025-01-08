@@ -15,20 +15,24 @@ class KarakterBloc extends Bloc<KarakterEvent, KarakterState> {
   Future<void> _onFetchKarakter(
       FetchKarakter event, Emitter<KarakterState> emit) async {
     emit(KarakterLoading());
-    try {
-      final response = await http.get(Uri.parse(
-          'https://api.jikan.moe/v4/anime/${event.animeId}/characters'));
+    bool success = false;
+    while (!success) {
+      try {
+        final response = await http.get(Uri.parse(
+            'https://api.jikan.moe/v4/anime/${event.animeId}/characters'));
 
-      if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body)['data'];
-        final characters =
-            data.map((character) => Character.fromJson(character)).toList();
-        emit(KarakterLoaded(characters));
-      } else {
+        if (response.statusCode == 200) {
+          final List<dynamic> data = json.decode(response.body)['data'];
+          final characters =
+              data.map((character) => Character.fromJson(character)).toList();
+          emit(KarakterLoaded(characters));
+          success = true;
+        } else {
+          emit(KarakterError());
+        }
+      } catch (_) {
         emit(KarakterError());
       }
-    } catch (_) {
-      emit(KarakterError());
     }
   }
 }
