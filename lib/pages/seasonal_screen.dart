@@ -72,6 +72,7 @@ class _SeasonalViewState extends State<SeasonalView> {
   late String currentSeason;
   late int currentYear;
   bool showArchive = false;
+  bool showArchiveAnime = false;
 
   @override
   void initState() {
@@ -110,6 +111,7 @@ class _SeasonalViewState extends State<SeasonalView> {
       }
       selectedNav = season;
       showArchive = false;
+      showArchiveAnime = false;
       // Reset Bloc state and fetch new data
       context
           .read<SeasonalAnimeBloc>()
@@ -121,6 +123,7 @@ class _SeasonalViewState extends State<SeasonalView> {
     setState(() {
       selectedNav = 'Archive'; // Pastikan "Archive" menjadi nilai aktif
       showArchive = true;
+      showArchiveAnime = false;
     });
   }
 
@@ -129,6 +132,7 @@ class _SeasonalViewState extends State<SeasonalView> {
       currentYear = year;
       currentSeason = season;
       showArchive = false;
+      showArchiveAnime = true;
       context
           .read<SeasonalAnimeBloc>()
           .add(FetchSeasonalAnimeBySeason(currentYear, currentSeason));
@@ -177,7 +181,29 @@ class _SeasonalViewState extends State<SeasonalView> {
               ),
               const SizedBox(height: 16.0),
 
-              // Dropdowns and Season Text
+              // Current Season and Year with Back Button
+              if (showArchiveAnime) ...[
+                Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back),
+                      onPressed: () {
+                        _showArchive(); // Kembali ke Archive Screen
+                      },
+                    ),
+                    Text(
+                      '${SeasonalScreen.capitalize(currentSeason)} $currentYear',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16.0),
+              ],
+
+              // Dropdowns and Current Season/Year
               if (!showArchive) ...[
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
