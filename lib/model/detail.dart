@@ -16,6 +16,7 @@ class AnimeDetail {
   final List<String> openingSongs;
   final List<String> endingSongs;
   final int rank;
+  final int members;
 
   AnimeDetail({
     required this.malId,
@@ -35,6 +36,7 @@ class AnimeDetail {
     required this.openingSongs,
     required this.endingSongs,
     required this.rank,
+    required this.members, // Initialize members property
   });
 
   factory AnimeDetail.fromJson(Map<String, dynamic> json) {
@@ -62,6 +64,7 @@ class AnimeDetail {
           .map((song) => song as String)
           .toList(),
       rank: json['rank'] ?? 0,
+      members: json['members'] ?? 0, // Parse members property
     );
   }
 }

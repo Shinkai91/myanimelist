@@ -23,7 +23,7 @@ class Anime {
     return Anime(
       malId: json['mal_id'] as int,
       title: json['title'] as String,
-      imageUrl: json['images']['jpg']['image_url'] as String,
+      imageUrl: json['images']['jpg']['large_image_url'] as String,
       score: (json['score'] ?? 0).toDouble(),
       filter: filter,
       trailerImageUrl: json['trailer']?['images']?['maximum_image_url'],

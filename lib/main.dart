@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:myanimelist/bloc/anime_bloc.dart';
 import 'package:myanimelist/bloc/anime_rekomendasi_bloc.dart';
+import 'package:myanimelist/bloc/detail_bloc.dart';
 import 'package:myanimelist/bloc/manga_bloc.dart';
 import 'package:myanimelist/bloc/rekomendasi_bloc.dart';
 import 'package:myanimelist/pages/splash_screen.dart';
@@ -28,6 +29,9 @@ class MyAnimeList extends StatelessWidget {
         ),
         BlocProvider<AnimeRecommendationBloc>(
           create: (context) => AnimeRecommendationBloc(),
+        ),
+        BlocProvider<AnimeDetailBloc>(
+          create: (context) => AnimeDetailBloc(),
         ),
       ],
       child: const MaterialApp(

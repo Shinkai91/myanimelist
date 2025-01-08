@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:myanimelist/model/detail.dart';
 import 'package:shimmer/shimmer.dart';
 import 'dart:async';
 
 import 'package:myanimelist/bloc/anime_bloc.dart';
 import 'package:myanimelist/bloc/anime_rekomendasi_bloc.dart';
+import 'package:myanimelist/bloc/detail_bloc.dart'; // Import DetailBloc
 import 'package:myanimelist/model/anime.dart';
 import 'package:myanimelist/model/rekomendasi.dart';
 import 'package:myanimelist/pages/detail_screen.dart';
@@ -121,6 +123,14 @@ class _HomeScreenState extends State<HomeScreen> {
             }
           },
         ),
+        BlocListener<AnimeDetailBloc, AnimeDetailState>(
+          // Add DetailBloc listener
+          listener: (context, state) {
+            if (state is AnimeDetailLoaded) {
+              // Handle detail loaded state if needed
+            }
+          },
+        ),
       ],
       child: BlocBuilder<AnimeBloc, AnimeState>(
         builder: (context, state) {
@@ -141,7 +151,6 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Rekomendasi Text
                   Padding(
                     padding: const EdgeInsets.symmetric(
                         vertical: 8.0, horizontal: 16.0),
@@ -158,8 +167,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         return _buildLoading(isCarousel: true);
                       } else if (state is AnimeRecommendationLoaded) {
                         return Container(
-                          height: 200,
-                          margin: const EdgeInsets.symmetric(vertical: 16.0),
+                          height: 300,
+                          margin: const EdgeInsets.symmetric(vertical: 4.0),
                           child: ListView.builder(
                             scrollDirection: Axis.horizontal,
                             itemCount: state.recommendations.length,
@@ -168,6 +177,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                   state.recommendations[index];
                               return GestureDetector(
                                 onTap: () {
+                                  context.read<AnimeDetailBloc>().add(
+                                      FetchAnimeDetail(recommendation
+                                          .malId)); // Fetch detail data
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
@@ -176,64 +188,20 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ),
                                   );
                                 },
-                                child: Stack(
-                                  children: [
-                                    Container(
-                                      width: MediaQuery.of(context).size.width *
-                                          0.8,
-                                      margin: const EdgeInsets.symmetric(
-                                          horizontal: 8.0),
-                                      decoration: BoxDecoration(
-                                        borderRadius:
-                                            BorderRadius.circular(8.0),
-                                      ),
-                                      child: ClipRRect(
-                                        borderRadius:
-                                            BorderRadius.circular(8.0),
-                                        child: Stack(
-                                          children: [
-                                            Image.network(
-                                              recommendation.imageUrl,
-                                              fit: BoxFit.cover,
-                                              width: double.infinity,
-                                              height: double.infinity,
-                                            ),
-                                            Positioned(
-                                              left: 0,
-                                              bottom: 0,
-                                              child: Container(
-                                                padding:
-                                                    const EdgeInsets.all(8.0),
-                                                color: Colors.black
-                                                    .withOpacity(0.6),
-                                                child: Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  children: [
-                                                    Text(
-                                                      'Score: ${recommendation.score}',
-                                                      style: const TextStyle(
-                                                          color: Colors.white),
-                                                    ),
-                                                    Text(
-                                                      'Members: ${recommendation.members}',
-                                                      style: const TextStyle(
-                                                          color: Colors.white),
-                                                    ),
-                                                    Text(
-                                                      'Genres: ${recommendation.genres.join(', ')}',
-                                                      style: const TextStyle(
-                                                          color: Colors.white),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ],
+                                child: BlocBuilder<AnimeDetailBloc,
+                                    AnimeDetailState>(
+                                  builder: (context, detailState) {
+                                    if (detailState is AnimeDetailLoaded &&
+                                        detailState.animeDetail.malId ==
+                                            recommendation.malId) {
+                                      return _buildRecommendationCard(
+                                          recommendation,
+                                          detailState.animeDetail);
+                                    } else {
+                                      return _buildRecommendationCard(
+                                          recommendation, null);
+                                    }
+                                  },
                                 ),
                               );
                             },
@@ -276,7 +244,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildLoading({bool isCarousel = false}) {
     return Container(
-      height: 200,
+      height: 300, // Adjusted height for portrait posters
       margin: const EdgeInsets.symmetric(vertical: 16.0),
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
@@ -286,7 +254,7 @@ class _HomeScreenState extends State<HomeScreen> {
             baseColor: Colors.grey[300]!,
             highlightColor: Colors.grey[100]!,
             child: Container(
-              width: isCarousel ? MediaQuery.of(context).size.width * 0.8 : 120,
+              width: 200, // Adjusted width for portrait posters
               margin: const EdgeInsets.symmetric(horizontal: 8.0),
               decoration: BoxDecoration(
                 color: Colors.white,
@@ -316,7 +284,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const SizedBox(height: 8.0),
           SizedBox(
-            height: 200,
+            height: 300, // Adjusted height for portrait posters
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               itemCount: 5, // Number of shimmer items
@@ -325,9 +293,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   baseColor: Colors.grey[300]!,
                   highlightColor: Colors.grey[100]!,
                   child: Container(
-                    width: isCarousel
-                        ? MediaQuery.of(context).size.width * 0.8
-                        : 120,
+                    width: 200, // Adjusted width for portrait posters
                     margin: const EdgeInsets.symmetric(horizontal: 8.0),
                     decoration: BoxDecoration(
                       color: Colors.white,
@@ -470,6 +436,53 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildRecommendationCard(
+      AnimeRecommendation recommendation, AnimeDetail? detailAnime) {
+    return Container(
+      width: 200, // Adjusted width for portrait posters
+      margin: const EdgeInsets.symmetric(horizontal: 8.0),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(8.0),
+        child: Stack(
+          children: [
+            Image.network(
+              recommendation.imageUrl,
+              fit: BoxFit.cover,
+              width: double.infinity,
+              height: double.infinity,
+            ),
+            Positioned(
+              left: 0,
+              bottom: 0,
+              child: Container(
+                padding: const EdgeInsets.all(8.0),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.6),
+                  borderRadius: const BorderRadius.only(
+                    topRight: Radius.circular(4.0),
+                    bottomRight: Radius.circular(4.0),
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      recommendation.title,
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
