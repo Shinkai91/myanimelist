@@ -274,10 +274,8 @@ class _SeasonalViewState extends State<SeasonalView> {
                           );
                         }).toList(),
                       );
-                    } else if (state is ArchiveError) {
-                      return Center(child: Text(state.message));
                     } else {
-                      return const Center(child: Text('No data'));
+                      return _buildShimmerArchive();
                     }
                   },
                 )
@@ -315,7 +313,7 @@ class _SeasonalViewState extends State<SeasonalView> {
                         },
                       );
                     } else if (state is SeasonalAnimeError) {
-                      return Center(child: Text(state.message));
+                      return _buildShimmerGrid();
                     } else {
                       return _buildShimmerGrid();
                     }
@@ -594,7 +592,7 @@ class _SeasonalViewState extends State<SeasonalView> {
 
   Widget _buildShimmerArchive() {
     return Column(
-      children: List.generate(10, (index) {
+      children: List.generate(15, (index) {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [

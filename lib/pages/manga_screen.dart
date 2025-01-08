@@ -139,7 +139,7 @@ class _MangaScreenState extends State<MangaScreen> {
                           ),
                         );
                       } else if (state is MangaRecommendationError) {
-                        return Center(child: Text(state.message));
+                        return _buildLoading(isCarousel: true);
                       } else {
                         return const Center(
                             child: Text('Something went wrong!'));
@@ -154,7 +154,17 @@ class _MangaScreenState extends State<MangaScreen> {
               ),
             );
           } else if (state is MangaError) {
-            return Center(child: Text(state.message));
+            return SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Shimmer effect for loading state
+                  _buildShimmerSection('Rekomendasi', isCarousel: true),
+                  _buildShimmerSection('Top Manga'),
+                  _buildShimmerSection('Top Publishing'),
+                ],
+              ),
+            );
           } else {
             return const Center(child: Text('Something went wrong!'));
           }

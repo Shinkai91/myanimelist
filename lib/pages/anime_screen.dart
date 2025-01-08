@@ -197,7 +197,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         );
                       } else if (state is AnimeRecommendationError) {
-                        return Center(child: Text(state.message));
+                        return _buildLoading(isCarousel: true);
                       } else {
                         return const Center(
                             child: Text('Something went wrong!'));
@@ -212,7 +212,17 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             );
           } else if (state is AnimeError) {
-            return Center(child: Text(state.message));
+            return SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Shimmer effect for loading state
+                  _buildShimmerSection('Rekomendasi', isCarousel: true),
+                  _buildShimmerSection('Top Anime'),
+                  _buildShimmerSection('Top Airing'),
+                ],
+              ),
+            );
           } else {
             return const Center(child: Text('Something went wrong!'));
           }
