@@ -17,6 +17,7 @@ class AnimeDetail {
   final List<String> endingSongs;
   final int rank;
   final int members;
+  final String url;
 
   AnimeDetail({
     required this.malId,
@@ -36,7 +37,8 @@ class AnimeDetail {
     required this.openingSongs,
     required this.endingSongs,
     required this.rank,
-    required this.members, // Initialize members property
+    required this.members,
+    required this.url,
   });
 
   factory AnimeDetail.fromJson(Map<String, dynamic> json) {
@@ -64,7 +66,8 @@ class AnimeDetail {
           .map((song) => song as String)
           .toList(),
       rank: json['rank'] ?? 0,
-      members: json['members'] ?? 0, // Parse members property
+      members: json['members'] ?? 0,
+      url: json['url'] ?? '',
     );
   }
 }
@@ -81,6 +84,7 @@ class MangaDetail {
   final String synopsis;
   final List<String> genres;
   final int rank;
+  final String url;
 
   MangaDetail({
     required this.malId,
@@ -94,6 +98,7 @@ class MangaDetail {
     required this.synopsis,
     required this.genres,
     required this.rank,
+    required this.url,
   });
 
   factory MangaDetail.fromJson(Map<String, dynamic> json) {
@@ -111,6 +116,7 @@ class MangaDetail {
           .map((genre) => genre['name'] as String)
           .toList(),
       rank: json['rank'] ?? 0,
+      url: json['url'] ?? '',
     );
   }
 }

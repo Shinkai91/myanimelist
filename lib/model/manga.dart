@@ -11,7 +11,7 @@ class Manga {
   final String endDate;
   final String filter;
   final List<String> genres;
-  final int members; // Tambahkan properti members
+  final int members;
 
   Manga({
     required this.malId,
@@ -26,7 +26,7 @@ class Manga {
     required this.endDate,
     required this.filter,
     required this.genres,
-    required this.members, // Tambahkan properti members
+    required this.members,
   });
 
   factory Manga.fromJson(Map<String, dynamic> json, {String filter = ''}) {
@@ -45,7 +45,7 @@ class Manga {
       genres: (json['genres'] as List<dynamic>? ?? [])
           .map((genre) => genre['name'] as String)
           .toList(), // Parse genres property
-      members: json['members'] ?? 0, // Tambahkan parsing members
+      members: json['members'] ?? 0, 
     );
   }
 }
