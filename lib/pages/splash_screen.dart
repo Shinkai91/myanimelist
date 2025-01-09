@@ -66,7 +66,7 @@ class _SplashScreenState extends State<SplashScreen>
           child: ScaleTransition(
             scale: _scaleAnimation,
             child: Image.asset(
-              'lib/assets/logo.jpg',
+              'lib/assets/splash.jpg',
               width: 200,
               height: 200,
             ),

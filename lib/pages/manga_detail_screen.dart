@@ -8,6 +8,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:myanimelist/pages/offline_screen.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MangaDetailScreen extends StatefulWidget {
   final int id;
@@ -23,12 +24,14 @@ class _MangaDetailPageState extends State<MangaDetailScreen> {
   bool _isOffline = false;
   bool _isSharing = false;
   bool _isMounted = false;
+  bool _isFavorite = false;
 
   @override
   void initState() {
     super.initState();
     _isMounted = true;
     _checkConnectivity();
+    _checkIfFavorite();
 
     Connectivity()
         .onConnectivityChanged
@@ -58,6 +61,43 @@ class _MangaDetailPageState extends State<MangaDetailScreen> {
       setState(() {
         _isOffline = false;
       });
+    }
+  }
+
+  Future<void> _checkIfFavorite() async {
+    final prefs = await SharedPreferences.getInstance();
+    final favoriteManga = prefs.getStringList('favoriteManga') ?? [];
+    if (favoriteManga.contains(widget.id.toString())) {
+      setState(() {
+        _isFavorite = true;
+      });
+    }
+  }
+
+  Future<void> _saveToFavorites(int id) async {
+    final prefs = await SharedPreferences.getInstance();
+    final favoriteManga = prefs.getStringList('favoriteManga') ?? [];
+    if (!favoriteManga.contains(id.toString())) {
+      favoriteManga.add(id.toString());
+      await prefs.setStringList('favoriteManga', favoriteManga);
+      setState(() {
+        _isFavorite = true;
+      });
+    }
+  }
+
+  Future<void> _removeFromFavorites(int id) async {
+    final prefs = await SharedPreferences.getInstance();
+    final favoriteManga = prefs.getStringList('favoriteManga') ?? [];
+    if (favoriteManga.contains(id.toString())) {
+      favoriteManga.remove(id.toString());
+      await prefs.setStringList('favoriteManga', favoriteManga);
+      if (mounted) {
+        setState(() {
+          _isFavorite = false;
+        });
+        Navigator.pop(context, true);
+      }
     }
   }
 
@@ -131,14 +171,23 @@ class _MangaDetailPageState extends State<MangaDetailScreen> {
               Navigator.pop(context);
             },
           ),
-          title: Image.network(
-            'https://store-images.s-microsoft.com/image/apps.14964.9007199266506523.65c06eb1-33a4-438a-855a-7726d60ec911.21ac20c8-cdd3-447c-94d5-d8cf1eb08650?h=210',
+          title: Image.asset(
+            'lib/assets/appbar.png',
             height: 40,
           ),
           actions: [
             IconButton(
-              icon: const Icon(Icons.favorite_border, color: Colors.white),
-              onPressed: () {},
+              icon: Icon(
+                _isFavorite ? Icons.favorite : Icons.favorite_border,
+                color: _isFavorite ? Colors.red : Colors.white,
+              ),
+              onPressed: () {
+                if (_isFavorite) {
+                  _removeFromFavorites(widget.id);
+                } else {
+                  _saveToFavorites(widget.id);
+                }
+              },
             ),
             BlocBuilder<MangaDetailBloc, MangaDetailState>(
               builder: (context, state) {

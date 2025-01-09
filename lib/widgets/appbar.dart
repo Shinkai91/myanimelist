@@ -11,8 +11,8 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       backgroundColor: const Color.fromARGB(255, 40, 53, 147),
       leading: Padding(
         padding: const EdgeInsets.all(8.0),
-        child: Image.network(
-          'https://store-images.s-microsoft.com/image/apps.14964.9007199266506523.65c06eb1-33a4-438a-855a-7726d60ec911.21ac20c8-cdd3-447c-94d5-d8cf1eb08650?h=210',
+        child: Image.asset(
+          'lib/assets/appbar.png',
           fit: BoxFit.contain,
         ),
       ),
