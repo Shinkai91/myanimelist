@@ -71,6 +71,14 @@ This application allows users to explore anime collections with modern Flutter d
 
 Version: 1.0.0+1
 
+## API
+
+This application uses the [Jikan API](https://docs.api.jikan.moe/) for fetching anime data.
+
+## Github Repository
+
+You can find the source code [here](https://github.com/Shinkai91/myanimelist).
+
 ## License
 
 This project is not intended for publication on pub.dev. Modify the `publish_to` field in `pubspec.yaml` if you wish to publish it.
