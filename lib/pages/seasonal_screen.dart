@@ -140,6 +140,20 @@ class _SeasonalViewState extends State<SeasonalView> {
     });
   }
 
+  void _sortAnimeList(List<SeasonalAnime> animeList) {
+    switch (selectedFilter) {
+      case 'Members':
+        animeList.sort((a, b) => b.members.compareTo(a.members));
+        break;
+      case 'Start Date':
+        animeList.sort((a, b) => b.aired.from.compareTo(a.aired.from));
+        break;
+      case 'Score':
+        animeList.sort((a, b) => b.score.compareTo(a.score));
+        break;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -285,6 +299,8 @@ class _SeasonalViewState extends State<SeasonalView> {
                     if (state is SeasonalAnimeLoading) {
                       return _buildShimmerGrid();
                     } else if (state is SeasonalAnimeLoaded) {
+                      _sortAnimeList(state
+                          .animes); // Sort the list based on the selected filter
                       return GridView.builder(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
